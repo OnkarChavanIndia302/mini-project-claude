@@ -391,7 +391,7 @@ async function uploadEncryptedPackage() {
     }
 
     // Send only the encrypted package to S3.
-    const uploadResponse = await fetch(uploadUrl, {
+   const urlResponse = await fetch('https://mini-project-claude.onrender.com/api/upload-url', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json'
