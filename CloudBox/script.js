@@ -331,7 +331,9 @@ async function uploadEncryptedPackage() {
 
     const urlResponse = await fetch('https://mini-project-claude.onrender.com/api/upload-url', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({
         fileName: `${fileMetadata.name}.cloudbox-encrypted.json`,
         contentType: 'application/json'
@@ -350,7 +352,9 @@ async function uploadEncryptedPackage() {
 
     const s3UploadResponse = await fetch(uploadUrl, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: encryptedBlob
     });
 
@@ -359,6 +363,7 @@ async function uploadEncryptedPackage() {
     }
 
     setStatus(`Encrypted file uploaded successfully to AWS S3. Object: ${key}`, 'success');
+
   } catch (error) {
     console.error('Cloud upload error:', error);
     setStatus(`Cloud upload failed: ${error.message}. Check backend, S3 CORS and AWS permissions.`, 'error');
