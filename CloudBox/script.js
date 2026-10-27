@@ -1,4 +1,3 @@
-
 'use strict';
 
 const fileInput = document.getElementById('fileInput');
@@ -51,7 +50,6 @@ function clearProcessingState() {
   aesKey = null;
   fileMetadata = null;
   blockResults.replaceChildren();
-
   encryptBtn.disabled = true;
   decryptBtn.disabled = true;
   downloadEncryptedBtn.disabled = true;
@@ -59,10 +57,7 @@ function clearProcessingState() {
 }
 
 function updateFileDetails() {
-  selectedFile = fileInput.files && fileInput.files[0]
-    ? fileInput.files[0]
-    : null;
-
+  selectedFile = fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
   clearProcessingState();
 
   if (!selectedFile) {
@@ -75,23 +70,16 @@ function updateFileDetails() {
   }
 
   const count = getBlockCount(selectedFile.size, getBlockSize());
-
-  fileInfo.textContent =
-    `File: ${selectedFile.name} | Size: ${formatBytes(selectedFile.size)} | Type: ${selectedFile.type || 'Unknown'}`;
-
+  fileInfo.textContent = `File: ${selectedFile.name} | Size: ${formatBytes(selectedFile.size)} | Type: ${selectedFile.type || 'Unknown'}`;
   blockCountElement.textContent = count;
   selectedSizeElement.textContent = formatBytes(selectedFile.size);
   segmentBtn.disabled = false;
-
   setStatus(`File selected. Ready to segment ${count} block(s).`);
 }
 
 function updateBlockCount() {
   if (!selectedFile) return;
-
-  blockCountElement.textContent =
-    getBlockCount(selectedFile.size, getBlockSize());
-
+  blockCountElement.textContent = getBlockCount(selectedFile.size, getBlockSize());
   clearProcessingState();
   setStatus('Block size changed. Segment the file again.');
 }
@@ -111,13 +99,8 @@ async function segmentFile() {
 
     plainBlocks = [];
 
-    for (
-      let start = 0, index = 0;
-      start < bytes.length;
-      start += blockSize, index++
-    ) {
+    for (let start = 0, index = 0; start < bytes.length; start += blockSize, index++) {
       const end = Math.min(start + blockSize, bytes.length);
-
       plainBlocks.push({
         index,
         data: bytes.slice(start, end),
@@ -133,7 +116,6 @@ async function segmentFile() {
     };
 
     renderBlockList(plainBlocks, 'Original block');
-
     encryptBtn.disabled = plainBlocks.length === 0;
 
     setStatus(
@@ -191,7 +173,6 @@ async function encryptFileBlocks() {
 
   encryptBtn.disabled = true;
   uploadCloudBtn.disabled = true;
-
   setStatus('Generating AES-256-GCM key and encrypting blocks...');
 
   try {
@@ -205,7 +186,6 @@ async function encryptFileBlocks() {
 
     for (const block of plainBlocks) {
       const iv = crypto.getRandomValues(new Uint8Array(12));
-
       const encryptedBuffer = await crypto.subtle.encrypt(
         { name: 'AES-GCM', iv },
         aesKey,
@@ -265,16 +245,12 @@ async function decryptAndRestore() {
       decryptedParts.push(decryptedBuffer);
     }
 
-    const restoredBlob = new Blob(decryptedParts, {
-      type: fileMetadata.type
-    });
-
+    const restoredBlob = new Blob(decryptedParts, { type: fileMetadata.type });
     const url = URL.createObjectURL(restoredBlob);
     const link = document.createElement('a');
 
     link.href = url;
     link.download = `restored_${fileMetadata.name}`;
-
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -293,8 +269,6 @@ async function decryptAndRestore() {
   }
 }
 
-// Download a local demo package.
-// WARNING: this package includes the decryption key.
 async function downloadEncryptedPackage() {
   if (!encryptedBlocks.length || !fileMetadata || !aesKey) {
     setStatus('Encrypt the file before downloading the encrypted package.', 'error');
@@ -313,16 +287,12 @@ async function downloadEncryptedPackage() {
       blocks: encryptedBlocks
     };
 
-    const blob = new Blob([JSON.stringify(packageObject)], {
-      type: 'application/json'
-    });
-
+    const blob = new Blob([JSON.stringify(packageObject)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
 
     link.href = url;
     link.download = `${fileMetadata.name}.cloudbox-encrypted.json`;
-
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -339,72 +309,62 @@ async function downloadEncryptedPackage() {
   }
 }
 
-// Upload encrypted data to AWS S3 using the local backend.
-// Upload encrypted data to AWS S3 using the local backend.
+// Upload encrypted data to AWS S3 using the Render live backend.
 async function uploadEncryptedPackage() {
-    if (!encryptedBlocks.length || !fileMetadata || !aesKey) {
-        setStatus('Please segment and encrypt a file first.', 'error');
-        return;
+  if (!encryptedBlocks.length || !fileMetadata || !aesKey) {
+    setStatus('Please segment and encrypt a file first.', 'error');
+    return;
+  }
+
+  uploadCloudBtn.disabled = true;
+  setStatus('Preparing encrypted package for AWS S3 upload...');
+
+  try {
+    const packageObject = {
+      format: 'CloudBox encrypted package v1',
+      algorithm: 'AES-256-GCM',
+      file: fileMetadata,
+      blocks: encryptedBlocks
+    };
+
+    const encryptedBlob = new Blob([JSON.stringify(packageObject)], { type: 'application/json' });
+
+    const urlResponse = await fetch('https://mini-project-claude.onrender.com/api/upload-url', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fileName: `${fileMetadata.name}.cloudbox-encrypted.json`,
+        contentType: 'application/json'
+      })
+    });
+
+    if (!urlResponse.ok) {
+      throw new Error(`Could not get upload URL (HTTP ${urlResponse.status})`);
     }
 
-    uploadCloudBtn.disabled = true;
-    setStatus('Preparing encrypted package for AWS S3 upload...');
+    const { uploadUrl, key } = await urlResponse.json();
 
-    try {
-        const packageObject = {
-            format: 'CloudBox encrypted package v1',
-            algorithm: 'AES-256-GCM',
-            file: fileMetadata,
-            blocks: encryptedBlocks
-        };
-
-        const encryptedBlob = new Blob([JSON.stringify(packageObject)], {
-            type: 'application/json'
-        });
-
-        // Request temporary presigned upload URL from Render backend
-        const urlResponse = await fetch('https://mini-project-claude.onrender.com/api/upload-url', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                fileName: `${fileMetadata.name}.cloudbox-encrypted.json`,
-                contentType: 'application/json'
-            })
-        });
-
-        if (!urlResponse.ok) {
-            throw new Error(`Could not get upload URL (HTTP ${urlResponse.status})`);
-        }
-
-        const { uploadUrl, key } = await urlResponse.json();
-
-        if (!uploadUrl || !key) {
-            throw new Error('Backend did not return uploadUrl and key.');
-        }
-
-        // Send encrypted package to S3 via PUT request
-        const s3UploadResponse = await fetch(uploadUrl, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: encryptedBlob
-        });
-
-        if (!s3UploadResponse.ok) {
-            throw new Error(`S3 upload failed (HTTP ${s3UploadResponse.status})`);
-        }
-
-        setStatus(`Encrypted file uploaded successfully to AWS S3. Object: ${key}`, 'success');
-
-    } catch (error) {
-        console.error('Cloud upload error:', error);
-        setStatus(`Cloud upload failed: ${error.message}. Check backend, S3 CORS and AWS permissions.`, 'error');
-    } finally {
-        uploadCloudBtn.disabled = false;
+    if (!uploadUrl || !key) {
+      throw new Error('Backend did not return uploadUrl and key.');
     }
+
+    const s3UploadResponse = await fetch(uploadUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: encryptedBlob
+    });
+
+    if (!s3UploadResponse.ok) {
+      throw new Error(`S3 upload failed (HTTP ${s3UploadResponse.status})`);
+    }
+
+    setStatus(`Encrypted file uploaded successfully to AWS S3. Object: ${key}`, 'success');
+  } catch (error) {
+    console.error('Cloud upload error:', error);
+    setStatus(`Cloud upload failed: ${error.message}. Check backend, S3 CORS and AWS permissions.`, 'error');
+  } finally {
+    uploadCloudBtn.disabled = false;
+  }
 }
 
 fileInput.addEventListener('change', updateFileDetails);
@@ -416,8 +376,5 @@ downloadEncryptedBtn.addEventListener('click', downloadEncryptedPackage);
 uploadCloudBtn.addEventListener('click', uploadEncryptedPackage);
 
 if (!window.isSecureContext || !window.crypto?.subtle) {
-  setStatus(
-    'Web Crypto may be unavailable. Open the project through localhost or HTTPS.',
-    'error'
-  );
+  setStatus('Web Crypto may be unavailable. Open the project through localhost or HTTPS.', 'error');
 }
