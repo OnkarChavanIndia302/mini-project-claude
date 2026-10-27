@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CloudBox secure file storage project demo">
+  <title>CloudBox | Secure Storage</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#overview"><span class="brand-mark">C</span> CloudBox</a>
+    <nav aria-label="Main navigation">
+      <a href="#overview">Overview</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#security">Security Lab</a>
+      <a href="#team">Project</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" id="overview">
+      <div class="hero-copy">
+        <p class="eyebrow">SECURE STORAGE · MINI PROJECT</p>
+        <h1>Your files.<br><span>Your control.</span></h1>
+        <p class="hero-description">A browser-based demonstration of file segmentation and AES-256-GCM encryption for the CloudBox secure storage project.</p>
+        <a class="primary-link" href="#security">Open Security Lab <span aria-hidden="true">→</span></a>
+      </div>
+      <div class="hero-visual" aria-label="Cloud storage illustration">
+        <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+        <div class="cloud-icon">☁</div>
+        <div class="floating-chip chip-top">AES-256-GCM</div>
+        <div class="floating-chip chip-bottom">● Encrypted locally</div>
+      </div>
+    </section>
+
+    <section class="section" id="architecture">
+      <div class="section-heading">
+        <p class="eyebrow">HOW IT WORKS</p>
+        <h2>Three steps to safer files</h2>
+        <p>In this demo, file processing happens in your browser. Files are not uploaded to a server by this page.</p>
+      </div>
+      <div class="feature-grid">
+        <article class="feature-card"><span class="feature-number">01</span><h3>Select a file</h3><p>Choose a local file to begin processing.</p></article>
+        <article class="feature-card"><span class="feature-number">02</span><h3>Split into blocks</h3><p>Divide the file into smaller byte ranges for processing.</p></article>
+        <article class="feature-card"><span class="feature-number">03</span><h3>Encrypt & restore</h3><p>Encrypt the blocks and decrypt them again when you have the key.</p></article>
+      </div>
+    </section>
+
+    <section class="section security-section" id="security">
+      <div class="section-heading">
+        <p class="eyebrow">INTERACTIVE DEMO</p>
+        <h2>Security Lab</h2>
+        <p>Select a file, choose a block size, then segment and encrypt it using your browser's Web Crypto API.</p>
+      </div>
+      <div class="security-card">
+        <div class="field-group">
+          <label for="fileInput">Choose your file</label>
+          <input id="fileInput" type="file">
+          <p class="hint">For this demo, processing stays in this browser tab.</p>
+        </div>
+        <div class="file-summary" id="fileInfo" aria-live="polite">No file selected yet.</div>
+        <div class="field-group">
+          <label for="blockSize">Select block size</label>
+          <select id="blockSize">
+            <option value="65536">64 KB</option>
+            <option value="131072">128 KB</option>
+            <option value="262144">256 KB</option>
+            <option value="524288">512 KB</option>
+            <option value="1048576">1024 KB</option>
+          </select>
+        </div>
+        <div class="stats-row">
+          <div class="stat-box"><span class="stat-label">Number of blocks</span><strong id="blockCount">—</strong></div>
+          <div class="stat-box"><span class="stat-label">Selected size</span><strong id="selectedSize">—</strong></div>
+        </div>
+        <div class="button-row">
+          <button id="segmentBtn" class="button secondary" type="button" disabled>Segment file</button>
+          <button id="encryptBtn" class="button primary" type="button" disabled>Encrypt blocks</button>
+        </div>
+        <div id="status" class="status" role="status" aria-live="polite">Choose a file to start.</div>
+        <div id="blockResults" class="block-results"></div>
+        <div class="button-row">
+          <button id="decryptBtn" class="button secondary" type="button" disabled>Decrypt & restore</button>
+          <button id="downloadEncryptedBtn" class="button secondary" type="button" disabled>Download encrypted package</button>
+        </div>
+        <p class="warning-note"><strong>Demo note:</strong> This is a learning prototype, not a production cloud-storage service. The encryption key is kept only in this page's memory. If you reload or close the page, you will need to select the original file and encrypt it again; the key is not saved or exported.</p>
+      </div>
+    </section>
+
+    <section class="section project-section" id="team">
+      <div class="section-heading">
+        <p class="eyebrow">PROJECT NOTES</p>
+        <h2>CloudBox Secure Storage</h2>
+        <p>Mini-project prototype demonstrating client-side file segmentation and authenticated encryption. Cloud hosting and Amazon S3 integration are separate steps and are not implemented in this static page.</p>
+      </div>
+    </section>
+  </main>
+  <footer><span>CloudBox</span><span>Secure Storage · Learning Prototype</span></footer>
+</body>
+</html>
