@@ -340,83 +340,71 @@ async function downloadEncryptedPackage() {
 }
 
 // Upload encrypted data to AWS S3 using the local backend.
+// Upload encrypted data to AWS S3 using the local backend.
 async function uploadEncryptedPackage() {
-  if (!encryptedBlocks.length || !fileMetadata || !aesKey) {
-    setStatus('Please segment and encrypt a file first.', 'error');
-    return;
-  }
-
-  uploadCloudBtn.disabled = true;
-  setStatus('Preparing encrypted package for AWS S3 upload...');
-
-  try {
-    // IMPORTANT: The AES key is deliberately NOT included in this package.
-    const packageObject = {
-      format: 'CloudBox encrypted package v1',
-      algorithm: 'AES-256-GCM',
-      file: fileMetadata,
-      blocks: encryptedBlocks
-    };
-
-    const encryptedBlob = new Blob(
-      [JSON.stringify(packageObject)],
-      { type: 'application/json' }
-    );
-
-    // Request a temporary, presigned upload URL from the backend.
-    const urlResponse = await fetch(
-      'http://localhost:3000/api/upload-url',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          fileName: `${fileMetadata.name}.cloudbox-encrypted.json`,
-          contentType: 'application/json'
-        })
-      }
-    );
-
-    if (!urlResponse.ok) {
-      throw new Error(
-        `Could not get upload URL (HTTP ${urlResponse.status})`
-      );
+    if (!encryptedBlocks.length || !fileMetadata || !aesKey) {
+        setStatus('Please segment and encrypt a file first.', 'error');
+        return;
     }
 
-    const { uploadUrl, key } = await urlResponse.json();
+    uploadCloudBtn.disabled = true;
+    setStatus('Preparing encrypted package for AWS S3 upload...');
 
-    if (!uploadUrl || !key) {
-      throw new Error('Backend did not return uploadUrl and key.');
+    try {
+        const packageObject = {
+            format: 'CloudBox encrypted package v1',
+            algorithm: 'AES-256-GCM',
+            file: fileMetadata,
+            blocks: encryptedBlocks
+        };
+
+        const encryptedBlob = new Blob([JSON.stringify(packageObject)], {
+            type: 'application/json'
+        });
+
+        // Request temporary presigned upload URL from Render backend
+        const urlResponse = await fetch('https://mini-project-claude.onrender.com/api/upload-url', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                fileName: `${fileMetadata.name}.cloudbox-encrypted.json`,
+                contentType: 'application/json'
+            })
+        });
+
+        if (!urlResponse.ok) {
+            throw new Error(`Could not get upload URL (HTTP ${urlResponse.status})`);
+        }
+
+        const { uploadUrl, key } = await urlResponse.json();
+
+        if (!uploadUrl || !key) {
+            throw new Error('Backend did not return uploadUrl and key.');
+        }
+
+        // Send encrypted package to S3 via PUT request
+        const s3UploadResponse = await fetch(uploadUrl, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: encryptedBlob
+        });
+
+        if (!s3UploadResponse.ok) {
+            throw new Error(`S3 upload failed (HTTP ${s3UploadResponse.status})`);
+        }
+
+        setStatus(`Encrypted file uploaded successfully to AWS S3. Object: ${key}`, 'success');
+
+    } catch (error) {
+        console.error('Cloud upload error:', error);
+        setStatus(`Cloud upload failed: ${error.message}. Check backend, S3 CORS and AWS permissions.`, 'error');
+    } finally {
+        uploadCloudBtn.disabled = false;
     }
-
-    // Send only the encrypted package to S3.
- const urlResponse = await fetch('https://mini-project-claude.onrender.com/api/upload-url', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: encryptedBlob
-    });
-
-    if (!uploadResponse.ok) {
-      throw new Error(`S3 upload failed (HTTP ${uploadResponse.status})`);
-    }
-
-    setStatus(
-      `Encrypted file uploaded successfully to AWS S3. Object: ${key}`,
-      'success'
-    );
-  } catch (error) {
-    console.error('Cloud upload error:', error);
-
-    setStatus(
-      `Cloud upload failed: ${error.message}. Check backend, S3 CORS and AWS permissions.`,
-      'error'
-    );
-  } finally {
-    uploadCloudBtn.disabled = false;
-  }
 }
 
 fileInput.addEventListener('change', updateFileDetails);
