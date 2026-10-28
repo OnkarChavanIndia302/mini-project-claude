@@ -224,13 +224,14 @@ async function encryptFileBlocks() {
 }
 
 async function decryptAndRestore() {
+  // Check if we have active blocks and key in memory, OR if someone loaded an encrypted JSON structure
   if (!aesKey || !encryptedBlocks.length || !fileMetadata) {
-    setStatus('No encrypted blocks or key available. Encrypt the file first.', 'error');
+    setStatus('No active encryption key or encrypted blocks found in memory. Please ensure you have encrypted or loaded the package first.', 'error');
     return;
   }
 
   decryptBtn.disabled = true;
-  setStatus('Decrypting blocks and restoring the original file...');
+  setStatus('Decrypting blocks and restoring original file...');
 
   try {
     const decryptedParts = [];
@@ -245,12 +246,18 @@ async function decryptAndRestore() {
       decryptedParts.push(decryptedBuffer);
     }
 
-    const restoredBlob = new Blob(decryptedParts, { type: fileMetadata.type });
+    // Restore original file using correct fileMetadata type and original name (stripping out any encrypted json suffix if present)
+    const restoredBlob = new Blob(decryptedParts, { type: fileMetadata.type || 'application/octet-stream' });
     const url = URL.createObjectURL(restoredBlob);
     const link = document.createElement('a');
 
+    let cleanFileName = fileMetadata.name;
+    if (cleanFileName.endsWith('.cloudbox-encrypted.json')) {
+      cleanFileName = cleanFileName.replace('.cloudbox-encrypted.json', '');
+    }
+
     link.href = url;
-    link.download = `restored_${fileMetadata.name}`;
+    link.download = `restored_${cleanFileName}`;
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -258,12 +265,12 @@ async function decryptAndRestore() {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
 
     setStatus(
-      `Decryption successful. Downloaded restored_${fileMetadata.name}.`,
+      `Decryption successful! Restored original file: ${cleanFileName}`,
       'success'
     );
   } catch (error) {
     console.error(error);
-    setStatus(`Decryption failed: ${error.message}`, 'error');
+    setStatus(`Decryption failed: ${error.message}. Invalid key or corrupted block data.`, 'error');
   } finally {
     decryptBtn.disabled = false;
   }
