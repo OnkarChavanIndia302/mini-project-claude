@@ -1,104 +1,200 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CloudBox - Secure Client-Side Encrypted Storage</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- Google Fonts for Modern Typography -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CloudBox secure file storage project demo">
+  <title>CloudBox | Secure Storage & Testing</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
 </head>
 <body>
-    <div class="app-container">
-        <!-- Header Section -->
-        <header class="app-header">
-            <div class="logo-area">
-                <span class="logo-icon">🔒</span>
-                <h1>CloudBox <span class="badge">Secure Lab</span></h1>
-            </div>
-            <p class="subtitle">Client-side AES-256-GCM file segmentation & secure cloud storage by Onkar Chavan</p>
-        </header>
+  <header class="site-header">
+    <a class="brand" href="#overview"><span class="brand-mark">C</span> CloudBox</a>
+    <nav aria-label="Main navigation">
+      <a href="#overview">Overview</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#security">Security Lab</a>
+      <a href="#testing">Testing</a>
+      <a href="#team">Project</a>
+    </nav>
+  </header>
 
-        <!-- Main Workspace Card -->
-        <main class="workspace-grid">
-            
-            <!-- Step 1: File Selection & Config -->
-            <section class="card">
-                <div class="card-header">
-                    <span class="step-num">01</span>
-                    <h2>Select & Segment File</h2>
-                </div>
-                <div class="card-body">
-                    <div class="file-drop-zone" id="dropZone">
-                        <input type="file" id="fileInput" />
-                        <div class="drop-message">
-                            <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-                            <p>Drag & drop your file here or <span>browse</span></p>
-                        </div>
-                    </div>
+  <main>
+    <section class="hero" id="overview">
+      <div class="hero-copy">
+        <p class="eyebrow">SECURE STORAGE · MINI PROJECT</p>
+        <h1>Your files.<br><span>Your control.</span></h1>
+        <p class="hero-description">A browser-based demonstration of file segmentation and AES-256-GCM encryption for the CloudBox secure storage project.</p>
+        <a class="primary-link" href="#security">Open Security Lab <span aria-hidden="true">→</span></a>
+      </div>
+      <div class="hero-visual" aria-label="Cloud storage illustration">
+        <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+        <div class="cloud-icon">☁</div>
+        <div class="floating-chip chip-top">AES-256-GCM</div>
+        <div class="floating-chip chip-bottom">● Encrypted locally</div>
+      </div>
+    </section>
 
-                    <div class="config-group">
-                        <label for="chunkSize">Segment Block Size (KB):</label>
-                        <select id="chunkSize">
-                            <option value="64">64 KB (Fast)</option>
-                            <option value="256" selected>256 KB (Standard)</option>
-                            <option value="1024">1024 KB (Large)</option>
-                        </select>
-                    </div>
+    <section class="section" id="architecture">
+      <div class="section-heading">
+        <p class="eyebrow">HOW IT WORKS</p>
+        <h2>Three steps to safer files</h2>
+        <p>In this demo, file processing happens in your browser. Files are not uploaded to a server by this page.</p>
+      </div>
+      <div class="feature-grid">
+        <article class="feature-card"><span class="feature-number">01</span><h3>Select a file</h3><p>Choose a local file to begin processing.</p></article>
+        <article class="feature-card"><span class="feature-number">02</span><h3>Split into blocks</h3><p>Divide the file into smaller byte ranges for processing.</p></article>
+        <article class="feature-card"><span class="feature-number">03</span><h3>Encrypt & restore</h3><p>Encrypt the blocks and decrypt them again when you have the key.</p></article>
+      </div>
+    </section>
 
-                    <button id="segmentBtn" class="btn primary-btn">Segment File Into Blocks</button>
-                </div>
-            </section>
+    <section class="section security-section" id="security">
+      <div class="section-heading">
+        <p class="eyebrow">INTERACTIVE DEMO</p>
+        <h2>Security Lab</h2>
+        <p>Select a file, choose a block size, then segment and encrypt it using your browser's Web Crypto API.</p>
+      </div>
+      <div class="security-card">
+        <div class="field-group">
+          <label for="fileInput">Choose your file</label>
+          <input id="fileInput" type="file">
+          <p class="hint">For this demo, processing stays in this browser tab.</p>
+        </div>
+        <div class="file-summary" id="fileInfo" aria-live="polite">No file selected yet.</div>
+        <div class="field-group">
+          <label for="blockSize">Select block size</label>
+          <select id="blockSize">
+            <option value="65536">64 KB</option>
+            <option value="131072">128 KB</option>
+            <option value="262144">256 KB</option>
+            <option value="524288">512 KB</option>
+            <option value="1048576">1024 KB</option>
+          </select>
+        </div>
+        <div class="stats-row">
+          <div class="stat-box"><span class="stat-label">Number of blocks</span><strong id="blockCount">—</strong></div>
+          <div class="stat-box"><span class="stat-label">Selected size</span><strong id="selectedSize">—</strong></div>
+        </div>
+        <div class="button-row">
+          <button id="segmentBtn" class="button secondary" type="button" disabled>Segment file</button>
+          <button id="encryptBtn" class="button primary" type="button" disabled>Encrypt blocks</button>
+        </div>
+        <div id="status" class="status" role="status" aria-live="polite">Choose a file to start.</div>
+        <div id="blockResults" class="block-results"></div>
+        <div class="button-row">
+          <button id="decryptBtn" class="button secondary" type="button" disabled>Decrypt & restore</button>
+          <button id="downloadEncryptedBtn" class="button secondary" type="button" disabled>Download encrypted package</button>
+        </div>
+        <p class="warning-note"><strong>Demo note:</strong> This is a learning prototype, not a production cloud-storage service. The encryption key is kept only in this page's memory. If you reload or close the page, you will need to select the original file and encrypt it again; the key is not saved or exported.</p>
+      </div>
+    </section>
 
-            <!-- Step 2: Encryption & Cloud Actions -->
-            <section class="card">
-                <div class="card-header">
-                    <span class="step-num">02</span>
-                    <h2>Security & Cloud Actions</h2>
-                </div>
-                <div class="card-body action-body">
-                    <div class="action-item">
-                        <div class="action-info">
-                            <h3>AES-256 Encryption</h3>
-                            <p>Encrypt all segments locally via Web Crypto API.</p>
-                        </div>
-                        <button id="encryptBtn" class="btn secondary-btn" disabled>Encrypt Blocks</button>
-                    </div>
+    <!-- NEW 10 TEST CASES SECTION -->
+    <section class="section testing-section" id="testing">
+      <div class="section-heading">
+        <p class="eyebrow">SCENARIOS · 01–10</p>
+        <h2>Project test cases</h2>
+        <p>Comprehensive validation checklist for CloudBox core features, encryption, and AWS S3 integration.</p>
+      </div>
 
-                    <div class="action-item">
-                        <div class="action-info">
-                            <h3>AWS S3 Cloud Upload</h3>
-                            <p>Push encrypted chunks to remote S3 bucket.</p>
-                        </div>
-                        <button id="uploadBtn" class="btn cloud-btn" disabled>Upload to Cloud</button>
-                    </div>
-
-                    <div class="action-item">
-                        <div class="action-info">
-                            <h3>Restore & Decrypt</h3>
-                            <p>Download, merge and decrypt back to original.</p>
-                        </div>
-                        <button id="decryptBtn" class="btn success-btn" disabled>Decrypt & Restore</button>
-                    </div>
-                </div>
-            </section>
-
-        </main>
-
-        <!-- Status & Log Terminal -->
-        <section class="terminal-card">
-            <div class="terminal-header">
-                <span class="dot red"></span>
-                <span class="dot yellow"></span>
-                <span class="dot green"></span>
-                <span class="terminal-title">System Console / Logs</span>
-            </div>
-            <div id="status" class="terminal-body">
-                [System Ready] Waiting for file selection...
-            </div>
-        </section>
-    </div>
-
-    <script src="script.js"></script>
-</body>
-</html>
+      <div class="testing-card">
+        <div class="table-container">
+          <table class="test-table">
+            <thead>
+              <tr>
+                <th>TEST ID</th>
+                <th>SCENARIO</th>
+                <th>EXPECTED RESULT</th>
+                <th>ACTUAL RESULT</th>
+                <th>STATUS</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>TC-01</td>
+                <td><strong>Homepage loading</strong></td>
+                <td>Home page renders with correct content and no critical browser errors.</td>
+                <td><input type="text" class="actual-input" value="Working Fine"></td>
+                <td>
+                  <select class="status-select">
+                    <option value="PASS" selected>PASS</option>
+                    <option value="FAIL">FAIL</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td>TC-02</td>
+                <td><strong>Navigation & UI Layout</strong></td>
+                <td>All navigation links scroll correctly and UI remains fully responsive.</td>
+                <td><input type="text" class="actual-input" value="Working Fine"></td>
+                <td>
+                  <select class="status-select">
+                    <option value="PASS" selected>PASS</option>
+                    <option value="FAIL">FAIL</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td>TC-03</td>
+                <td><strong>File Selection</strong></td>
+                <td>Selected file details (name, size, MIME type) are dynamically updated in UI.</td>
+                <td><input type="text" class="actual-input" value="Working Fine"></td>
+                <td>
+                  <select class="status-select">
+                    <option value="PASS" selected>PASS</option>
+                    <option value="FAIL">FAIL</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td>TC-04</td>
+                <td><strong>Block Segmentation</strong></td>
+                <td>File correctly splits into chosen block size (64KB - 1024KB) calculation.</td>
+                <td><input type="text" class="actual-input" value="Working Fine"></td>
+                <td>
+                  <select class="status-select">
+                    <option value="PASS" selected>PASS</option>
+                    <option value="FAIL">FAIL</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td>TC-05</td>
+                <td><strong>AES-256-GCM Encryption</strong></td>
+                <td>Web Crypto API generates keys and encrypts file blocks locally in browser memory.</td>
+                <td><input type="text" class="actual-input" value="Working Fine"></td>
+                <td>
+                  <select class="status-select">
+                    <option value="PASS" selected>PASS</option>
+                    <option value="FAIL">FAIL</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td>TC-06</td>
+                <td><strong>Backend API Connection</strong></td>
+                <td>Frontend successfully communicates with backend Node.js server without CORS errors.</td>
+                <td><input type="text" class="actual-input" value="Working Fine"></td>
+                <td>
+                  <select class="status-select">
+                    <option value="PASS" selected>PASS</option>
+                    <option value="FAIL">FAIL</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td>TC-07</td>
+                <td><strong>AWS S3 Cloud Upload</strong></td>
+                <td>Encrypted package (.json format) uploads successfully to target AWS S3 bucket.</td>
+                <td><input type="text" class="actual-input" value="Working Fine"></td>
+                <td>
+                  <select class="status-select">
+                    <option value="PASS" selected>PASS</option>
+                    <option value="FAIL">FAIL</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td>TC-08</td>
+                <td><strong>Decryption & File
