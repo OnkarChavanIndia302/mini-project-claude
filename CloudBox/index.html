@@ -1,200 +1,148 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="CloudBox secure file storage project demo">
-  <title>CloudBox | Secure Storage & Testing</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="script.js" defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudBox Enterprise | Secure Cryptographic Vault</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
-  <header class="site-header">
-    <a class="brand" href="#overview"><span class="brand-mark">C</span> CloudBox</a>
-    <nav aria-label="Main navigation">
-      <a href="#overview">Overview</a>
-      <a href="#architecture">Architecture</a>
-      <a href="#security">Security Lab</a>
-      <a href="#testing">Testing</a>
-      <a href="#team">Project</a>
-    </nav>
-  </header>
+    <div class="ambient-glow"></div>
+    
+    <div class="app-container">
+        <!-- Top Navigation Bar -->
+        <header class="navbar">
+            <div class="brand">
+                <div class="brand-icon">🛡️</div>
+                <div class="brand-text">
+                    <h1>CloudBox <span class="enterprise-badge">ENTERPRISE</span></h1>
+                    <p>AES-256-GCM Zero-Knowledge Storage & Auth</p>
+                </div>
+            </div>
+            <div class="system-status-indicator">
+                <span class="pulse-dot"></span>
+                <span>MongoDB & AWS S3 Active</span>
+            </div>
+        </header>
 
-  <main>
-    <section class="hero" id="overview">
-      <div class="hero-copy">
-        <p class="eyebrow">SECURE STORAGE · MINI PROJECT</p>
-        <h1>Your files.<br><span>Your control.</span></h1>
-        <p class="hero-description">A browser-based demonstration of file segmentation and AES-256-GCM encryption for the CloudBox secure storage project.</p>
-        <a class="primary-link" href="#security">Open Security Lab <span aria-hidden="true">→</span></a>
-      </div>
-      <div class="hero-visual" aria-label="Cloud storage illustration">
-        <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
-        <div class="cloud-icon">☁</div>
-        <div class="floating-chip chip-top">AES-256-GCM</div>
-        <div class="floating-chip chip-bottom">● Encrypted locally</div>
-      </div>
-    </section>
+        <!-- SECTION 0: User Registration & Login Portal -->
+        <section class="glass-card auth-card">
+            <div class="card-heading">
+                <span class="step-badge">AUTH</span>
+                <h2>Identity & Access Management</h2>
+            </div>
+            
+            <div class="auth-grid">
+                <div class="field-group">
+                    <label for="authUsername">Username</label>
+                    <input type="text" id="authUsername" placeholder="e.g. OnkarChavan" />
+                </div>
+                <div class="field-group">
+                    <label for="authEmail">Email Address</label>
+                    <input type="email" id="authEmail" placeholder="onkar@example.com" />
+                </div>
+                <div class="field-group">
+                    <label for="authPassword">Password</label>
+                    <input type="password" id="authPassword" placeholder="••••••••••••" />
+                </div>
+            </div>
 
-    <section class="section" id="architecture">
-      <div class="section-heading">
-        <p class="eyebrow">HOW IT WORKS</p>
-        <h2>Three steps to safer files</h2>
-        <p>In this demo, file processing happens in your browser. Files are not uploaded to a server by this page.</p>
-      </div>
-      <div class="feature-grid">
-        <article class="feature-card"><span class="feature-number">01</span><h3>Select a file</h3><p>Choose a local file to begin processing.</p></article>
-        <article class="feature-card"><span class="feature-number">02</span><h3>Split into blocks</h3><p>Divide the file into smaller byte ranges for processing.</p></article>
-        <article class="feature-card"><span class="feature-number">03</span><h3>Encrypt & restore</h3><p>Encrypt the blocks and decrypt them again when you have the key.</p></article>
-      </div>
-    </section>
+            <div class="auth-actions">
+                <button id="registerBtn" class="action-btn primary-glow">
+                    <span>📝 Register User (MongoDB)</span>
+                </button>
+                <button id="loginBtn" class="action-btn emerald-glow">
+                    <span>🔑 Secure Login</span>
+                </button>
+            </div>
+        </section>
 
-    <section class="section security-section" id="security">
-      <div class="section-heading">
-        <p class="eyebrow">INTERACTIVE DEMO</p>
-        <h2>Security Lab</h2>
-        <p>Select a file, choose a block size, then segment and encrypt it using your browser's Web Crypto API.</p>
-      </div>
-      <div class="security-card">
-        <div class="field-group">
-          <label for="fileInput">Choose your file</label>
-          <input id="fileInput" type="file">
-          <p class="hint">For this demo, processing stays in this browser tab.</p>
-        </div>
-        <div class="file-summary" id="fileInfo" aria-live="polite">No file selected yet.</div>
-        <div class="field-group">
-          <label for="blockSize">Select block size</label>
-          <select id="blockSize">
-            <option value="65536">64 KB</option>
-            <option value="131072">128 KB</option>
-            <option value="262144">256 KB</option>
-            <option value="524288">512 KB</option>
-            <option value="1048576">1024 KB</option>
-          </select>
-        </div>
-        <div class="stats-row">
-          <div class="stat-box"><span class="stat-label">Number of blocks</span><strong id="blockCount">—</strong></div>
-          <div class="stat-box"><span class="stat-label">Selected size</span><strong id="selectedSize">—</strong></div>
-        </div>
-        <div class="button-row">
-          <button id="segmentBtn" class="button secondary" type="button" disabled>Segment file</button>
-          <button id="encryptBtn" class="button primary" type="button" disabled>Encrypt blocks</button>
-        </div>
-        <div id="status" class="status" role="status" aria-live="polite">Choose a file to start.</div>
-        <div id="blockResults" class="block-results"></div>
-        <div class="button-row">
-          <button id="decryptBtn" class="button secondary" type="button" disabled>Decrypt & restore</button>
-          <button id="downloadEncryptedBtn" class="button secondary" type="button" disabled>Download encrypted package</button>
-        </div>
-        <p class="warning-note"><strong>Demo note:</strong> This is a learning prototype, not a production cloud-storage service. The encryption key is kept only in this page's memory. If you reload or close the page, you will need to select the original file and encrypt it again; the key is not saved or exported.</p>
-      </div>
-    </section>
+        <!-- Main Dashboard Grid (Operations) -->
+        <main class="dashboard-grid">
+            
+            <!-- Panel 1: File Ingestion & Segmentation -->
+            <section class="glass-card">
+                <div class="card-heading">
+                    <span class="step-badge">01</span>
+                    <h2>Secure File Ingestion</h2>
+                </div>
+                
+                <div class="dropzone-wrapper" id="dropZone">
+                    <input type="file" id="fileInput" />
+                    <div class="dropzone-content">
+                        <div class="icon-cloud">📁</div>
+                        <p>Drag & drop file here or <span>browse local storage</span></p>
+                        <span class="file-hint">Supports PDF, DOCX, Images, Archives</span>
+                    </div>
+                </div>
 
-    <!-- NEW 10 TEST CASES SECTION -->
-    <section class="section testing-section" id="testing">
-      <div class="section-heading">
-        <p class="eyebrow">SCENARIOS · 01–10</p>
-        <h2>Project test cases</h2>
-        <p>Comprehensive validation checklist for CloudBox core features, encryption, and AWS S3 integration.</p>
-      </div>
+                <div class="control-group">
+                    <label for="chunkSize">Chunk Segmentation Size:</label>
+                    <select id="chunkSize">
+                        <option value="64">64 KB (High Granularity)</option>
+                        <option value="256" selected>256 KB (Optimal Enterprise)</option>
+                        <option value="1024">1024 KB (High Throughput)</option>
+                    </select>
+                </div>
 
-      <div class="testing-card">
-        <div class="table-container">
-          <table class="test-table">
-            <thead>
-              <tr>
-                <th>TEST ID</th>
-                <th>SCENARIO</th>
-                <th>EXPECTED RESULT</th>
-                <th>ACTUAL RESULT</th>
-                <th>STATUS</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>TC-01</td>
-                <td><strong>Homepage loading</strong></td>
-                <td>Home page renders with correct content and no critical browser errors.</td>
-                <td><input type="text" class="actual-input" value="Working Fine"></td>
-                <td>
-                  <select class="status-select">
-                    <option value="PASS" selected>PASS</option>
-                    <option value="FAIL">FAIL</option>
-                  </select>
-                </td>
-              </tr>
-              <tr>
-                <td>TC-02</td>
-                <td><strong>Navigation & UI Layout</strong></td>
-                <td>All navigation links scroll correctly and UI remains fully responsive.</td>
-                <td><input type="text" class="actual-input" value="Working Fine"></td>
-                <td>
-                  <select class="status-select">
-                    <option value="PASS" selected>PASS</option>
-                    <option value="FAIL">FAIL</option>
-                  </select>
-                </td>
-              </tr>
-              <tr>
-                <td>TC-03</td>
-                <td><strong>File Selection</strong></td>
-                <td>Selected file details (name, size, MIME type) are dynamically updated in UI.</td>
-                <td><input type="text" class="actual-input" value="Working Fine"></td>
-                <td>
-                  <select class="status-select">
-                    <option value="PASS" selected>PASS</option>
-                    <option value="FAIL">FAIL</option>
-                  </select>
-                </td>
-              </tr>
-              <tr>
-                <td>TC-04</td>
-                <td><strong>Block Segmentation</strong></td>
-                <td>File correctly splits into chosen block size (64KB - 1024KB) calculation.</td>
-                <td><input type="text" class="actual-input" value="Working Fine"></td>
-                <td>
-                  <select class="status-select">
-                    <option value="PASS" selected>PASS</option>
-                    <option value="FAIL">FAIL</option>
-                  </select>
-                </td>
-              </tr>
-              <tr>
-                <td>TC-05</td>
-                <td><strong>AES-256-GCM Encryption</strong></td>
-                <td>Web Crypto API generates keys and encrypts file blocks locally in browser memory.</td>
-                <td><input type="text" class="actual-input" value="Working Fine"></td>
-                <td>
-                  <select class="status-select">
-                    <option value="PASS" selected>PASS</option>
-                    <option value="FAIL">FAIL</option>
-                  </select>
-                </td>
-              </tr>
-              <tr>
-                <td>TC-06</td>
-                <td><strong>Backend API Connection</strong></td>
-                <td>Frontend successfully communicates with backend Node.js server without CORS errors.</td>
-                <td><input type="text" class="actual-input" value="Working Fine"></td>
-                <td>
-                  <select class="status-select">
-                    <option value="PASS" selected>PASS</option>
-                    <option value="FAIL">FAIL</option>
-                  </select>
-                </td>
-              </tr>
-              <tr>
-                <td>TC-07</td>
-                <td><strong>AWS S3 Cloud Upload</strong></td>
-                <td>Encrypted package (.json format) uploads successfully to target AWS S3 bucket.</td>
-                <td><input type="text" class="actual-input" value="Working Fine"></td>
-                <td>
-                  <select class="status-select">
-                    <option value="PASS" selected>PASS</option>
-                    <option value="FAIL">FAIL</option>
-                  </select>
-                </td>
-              </tr>
-              <tr>
-                <td>TC-08</td>
-                <td><strong>Decryption & File
+                <button id="segmentBtn" class="action-btn cyan-glow">
+                    <span>⚡ Segment File Into Blocks</span>
+                </button>
+            </section>
+
+            <!-- Panel 2: Cryptographic & AWS S3 Operations -->
+            <section class="glass-card">
+                <div class="card-heading">
+                    <span class="step-badge">02</span>
+                    <h2>Cryptographic Pipeline</h2>
+                </div>
+
+                <div class="pipeline-stack">
+                    <div class="pipeline-item">
+                        <div class="pipe-info">
+                            <h4>AES-256-GCM Encryption</h4>
+                            <p>Local browser zero-knowledge encryption</p>
+                        </div>
+                        <button id="encryptBtn" class="sm-btn cyan-btn" disabled>Encrypt</button>
+                    </div>
+
+                    <div class="pipeline-item">
+                        <div class="pipe-info">
+                            <h4>AWS S3 Cloud Dispatch</h4>
+                            <p>Push encrypted chunks to remote S3 bucket</p>
+                        </div>
+                        <button id="uploadBtn" class="sm-btn amber-btn" disabled>Upload S3</button>
+                    </div>
+
+                    <div class="pipeline-item">
+                        <div class="pipe-info">
+                            <h4>Restore & Reconstruct</h4>
+                            <p>Decrypt back to original file format</p>
+                        </div>
+                        <button id="decryptBtn" class="sm-btn emerald-btn" disabled>Restore</button>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Terminal Log Console -->
+        <section class="terminal-container">
+            <div class="terminal-top">
+                <div class="window-controls">
+                    <span class="c-red"></span>
+                    <span class="c-yellow"></span>
+                    <span class="c-green"></span>
+                </div>
+                <span class="terminal-title">cloudbox_system_audit.sh</span>
+            </div>
+            <div id="status" class="terminal-screen">
+                [SYSTEM INITIALIZED] Ready for authentication & file transaction pipeline...
+            </div>
+        </section>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
