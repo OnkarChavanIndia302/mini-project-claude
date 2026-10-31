@@ -4,165 +4,123 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CLOUDBOX — Digital Fortress</title>
+  <title>CLOUDBOX — Secure File System</title>
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-
 <body>
 
-<div class="app-shell">
+<div class="app">
 
-  <!-- SIDEBAR -->
   <aside class="sidebar">
-    <div class="brand">
-      <div class="brand-icon">C<span>✳</span></div>
-      <div>
-        <h2>CLOUD<span>BOX</span></h2>
-        <small>DIGITAL FORTRESS</small>
-      </div>
-    </div>
+    <a class="brand" href="#home">
+      <span class="brand-symbol">C.</span>
+      <span>CLOUDBOX<small>SECURE FILE SYSTEM</small></span>
+    </a>
 
-    <div class="side-label">WORKSPACE</div>
-
-    <nav class="side-nav">
-      <a href="#home" class="nav-link active">◈ <span>Overview</span></a>
-      <a href="#vault" class="nav-link">▣ <span>Secure Vault</span></a>
-      <a href="#security" class="nav-link">⌘ <span>Encryption</span></a>
-      <a href="#activity" class="nav-link">◷ <span>Activity Logs</span></a>
+    <div class="side-caption">NAVIGATION / 01</div>
+    <nav>
+      <a class="nav-item active" href="#home"><span>01</span> Overview</a>
+      <a class="nav-item" href="#vault"><span>02</span> File Vault</a>
+      <a class="nav-item" href="#operations"><span>03</span> Operations</a>
+      <a class="nav-item" href="#terminal"><span>04</span> System Logs</a>
     </nav>
 
     <div class="sidebar-bottom">
-      <div class="secure-status">
-        <span class="pulse"></span>
-        <div>
-          <strong>SYSTEM SECURE</strong>
-          <small>All systems operational</small>
-        </div>
-      </div>
-      <p class="version">CLOUDBOX v1.0.0</p>
+      <div class="connection"><i></i> SYSTEM ONLINE</div>
+      <div class="side-version">BUILD 1.0.26<br>ENCRYPTION ENGINE / AES-256</div>
     </div>
   </aside>
 
-  <!-- MAIN CONTENT -->
-  <main class="main-content" id="home">
-
+  <main id="home">
     <header class="topbar">
-      <div>
-        <p class="breadcrumb">WORKSPACE / <span>OVERVIEW</span></p>
-        <h3>Security Control Center</h3>
-      </div>
-
-      <div class="top-actions">
-        <div class="cloud-status">
-          <span class="pulse"></span>
-          AWS CLOUD
-        </div>
-        <button class="theme-btn" id="themeToggle">◐</button>
+      <div class="top-path">CLOUD STORAGE <span>/</span> CONTROL ROOM</div>
+      <div class="top-right">
+        <span class="aws-indicator"><i></i> AWS S3 CONNECTION</span>
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">◐</button>
       </div>
     </header>
 
-    <!-- HERO -->
     <section class="hero">
-      <div class="hero-content">
-        <div class="eyebrow"><span class="live-dot"></span> YOUR DIGITAL FORTRESS IS ACTIVE</div>
-
-        <h1>YOUR FILES.<br>
-          <span>YOUR RULES.</span>
-        </h1>
-
-        <p>
-          Protect your digital assets with client-side AES-256-GCM encryption.
-          Secure locally. Store privately. Access confidently.
-        </p>
-
-        <a href="#vault" class="hero-btn">ENTER SECURE VAULT <span>↗</span></a>
+      <div class="hero-copy">
+        <div class="overline"><span>●</span> PRIVATE DATA. TOTAL CONTROL.</div>
+        <h1>LOCK IT.<br><em>STORE IT.</em><br>OWN IT.</h1>
+        <p>A secure file environment built around client-side encryption. Your data gets protected before it ever reaches the cloud.</p>
+        <a href="#vault" class="hero-cta">OPEN THE VAULT <span>↘</span></a>
       </div>
 
-      <div class="vault-visual">
-        <div class="vault-grid"></div>
-        <div class="orbit orbit-outer"></div>
-        <div class="orbit orbit-inner"></div>
-
-        <div class="vault-core">
-          <div class="vault-lock">♜</div>
-          <div class="core-ring"></div>
-        </div>
-
-        <div class="float-label label-one">
-          <span>◈</span> AES-256 ACTIVE
-        </div>
-
-        <div class="float-label label-two">
-          <span>●</span> VAULT PROTECTED
-        </div>
-
-        <div class="visual-index">CB / 001</div>
-      </div>
-    </section>
-
-    <!-- STATUS STRIP -->
-    <section class="status-strip">
-      <div class="status-cell">
-        <span class="status-icon">◈</span>
-        <div>
-          <small>ENCRYPTION</small>
-          <strong>AES-256-GCM</strong>
-        </div>
-      </div>
-
-      <div class="status-cell">
-        <span class="status-icon">⌁</span>
-        <div>
-          <small>PROCESSING</small>
-          <strong>LOCAL DEVICE</strong>
-        </div>
-      </div>
-
-      <div class="status-cell">
-        <span class="status-icon">☁</span>
-        <div>
-          <small>CLOUD STORAGE</small>
-          <strong>AWS S3</strong>
-        </div>
-      </div>
-    </section>
-
-    <!-- VAULT WORKSPACE -->
-    <section class="workspace-section" id="vault">
-
-      <div class="section-heading">
-        <div>
-          <p class="section-tag">01 / SECURE WORKSPACE</p>
-          <h2>Vault Operations<span>.</span></h2>
-        </div>
-        <div class="encrypted-badge">● ENCRYPTION READY</div>
-      </div>
-
-      <div class="workspace-grid">
-
-        <!-- FILE UPLOAD -->
-        <div class="panel upload-panel">
-          <div class="panel-heading">
-            <div>
-              <span class="panel-number">01</span>
-              <h3>Import your file</h3>
+      <div class="hero-art">
+        <div class="art-top"><span>FIG. 001 — SECURITY CORE</span><span>ACTIVE</span></div>
+        <div class="crosshair crosshair-one"></div>
+        <div class="crosshair crosshair-two"></div>
+        <div class="vault-shape">
+          <div class="vault-inner">
+            <div class="vault-center">
+              <span class="lock-symbol">⬡</span>
+              <small>256</small>
             </div>
-            <span class="panel-symbol">↥</span>
           </div>
+          <div class="vault-line"></div>
+        </div>
+        <div class="art-label art-label-left">ENCRYPTION<br><b>ENGAGED</b></div>
+        <div class="art-label art-label-right">LOCAL<br><b>PROCESSING</b></div>
+        <div class="art-bottom"><span>SECURE BY DESIGN</span><span>CB—X/001</span></div>
+      </div>
+    </section>
+
+    <section class="metrics">
+      <div class="metric">
+        <span class="metric-index">01 / CIPHER</span>
+        <strong>AES<span>256</span></strong>
+        <small>GCM ENCRYPTION</small>
+      </div>
+      <div class="metric">
+        <span class="metric-index">02 / PROCESS</span>
+        <strong>LOCAL</strong>
+        <small>WEB CRYPTO API</small>
+      </div>
+      <div class="metric">
+        <span class="metric-index">03 / DESTINATION</span>
+        <strong>AWS S3</strong>
+        <small>ENCRYPTED STORAGE</small>
+      </div>
+      <div class="metric metric-highlight">
+        <span class="metric-index">04 / STATUS</span>
+        <strong><i></i> READY</strong>
+        <small>AWAITING FILE INPUT</small>
+      </div>
+    </section>
+
+    <section class="vault-section" id="vault">
+      <div class="section-head">
+        <div>
+          <div class="overline">01 — INPUT MODULE</div>
+          <h2>THE VAULT<span>.</span></h2>
+        </div>
+        <div class="section-note">IMPORT YOUR DIGITAL ASSET<br>SUPPORTED: FILES / DOCUMENTS</div>
+      </div>
+
+      <div class="vault-layout">
+        <div class="upload-panel">
+          <div class="panel-top"><span>FILE INGESTION</span><span>01—A</span></div>
 
           <div class="drop-zone" id="dropZone">
             <input type="file" id="fileInput">
-
-            <div class="upload-symbol">↑</div>
-            <h3>DROP FILE INTO VAULT</h3>
-            <p>Choose a file from your device</p>
-            <span class="browse-label">SELECT FILE ↗</span>
+            <div class="upload-cross">+</div>
+            <div class="drop-title">DROP YOUR<br>FILE HERE<span>.</span></div>
+            <p>Drag and drop or click to browse your device.</p>
+            <span class="browse-button">BROWSE FILES ↗</span>
+            <div class="drop-foot"><span>LOCAL DEVICE</span><span>SECURE INPUT</span></div>
           </div>
 
-          <div class="field-group">
-            <label for="chunkSize">BLOCK SIZE CONFIGURATION</label>
+          <div class="file-meta">
+            <span>SELECTED FILE</span>
+            <strong id="fileName">NO FILE SELECTED</strong>
+          </div>
+
+          <div class="block-config">
+            <label for="chunkSize">BLOCK SIZE</label>
             <select id="chunkSize">
               <option value="64">64 KB</option>
               <option value="128" selected>128 KB</option>
@@ -171,115 +129,93 @@
               <option value="1024">1024 KB</option>
             </select>
           </div>
-
-          <div class="file-summary">
-            <span>SELECTED ASSET</span>
-            <strong id="fileName">No file selected</strong>
-          </div>
         </div>
 
-        <!-- OPERATIONS -->
-        <div class="panel operations-panel" id="security">
-          <div class="panel-heading">
-            <div>
-              <span class="panel-number">02</span>
-              <h3>Security operations</h3>
+        <div class="operations-panel" id="operations">
+          <div class="panel-top"><span>EXECUTION CONTROLS</span><span>01—B</span></div>
+
+          <div class="operation">
+            <div class="op-number">01</div>
+            <div class="op-copy">
+              <h3>SEGMENT</h3>
+              <p>Divide file into smaller blocks.</p>
             </div>
-            <span class="panel-symbol">⌘</span>
+            <button class="op-button" id="segmentBtn">RUN ↗</button>
           </div>
 
-          <div class="operation-item">
-            <div class="operation-icon">▦</div>
-            <div class="operation-info">
-              <strong>File Segmentation</strong>
-              <small>Split file into manageable blocks</small>
+          <div class="operation">
+            <div class="op-number orange">02</div>
+            <div class="op-copy">
+              <h3>ENCRYPT</h3>
+              <p>Apply AES-256-GCM protection.</p>
             </div>
-            <button class="operation-btn" id="segmentBtn">SEGMENT ↗</button>
+            <button class="op-button orange-button" id="encryptBtn">LOCK ↗</button>
           </div>
 
-          <div class="operation-item">
-            <div class="operation-icon lime-icon">⬡</div>
-            <div class="operation-info">
-              <strong>AES Encryption</strong>
-              <small>Protect data with AES-256-GCM</small>
+          <div class="operation">
+            <div class="op-number blue">03</div>
+            <div class="op-copy">
+              <h3>CLOUD UPLOAD</h3>
+              <p>Send encrypted data to AWS S3.</p>
             </div>
-            <button class="operation-btn lime-btn" id="encryptBtn">ENCRYPT ↗</button>
+            <button class="op-button blue-button" id="uploadBtn">SEND ↗</button>
           </div>
 
-          <div class="operation-item">
-            <div class="operation-icon orange-icon">☁</div>
-            <div class="operation-info">
-              <strong>Cloud Upload</strong>
-              <small>Store encrypted file in AWS S3</small>
+          <div class="operation">
+            <div class="op-number green">04</div>
+            <div class="op-copy">
+              <h3>RESTORE</h3>
+              <p>Decrypt and recover original file.</p>
             </div>
-            <button class="operation-btn orange-btn" id="uploadBtn">UPLOAD ↗</button>
+            <button class="op-button green-button" id="decryptBtn">UNLOCK ↗</button>
           </div>
 
-          <div class="operation-item">
-            <div class="operation-icon blue-icon">↻</div>
-            <div class="operation-info">
-              <strong>File Restoration</strong>
-              <small>Decrypt and restore original file</small>
-            </div>
-            <button class="operation-btn blue-btn" id="decryptBtn">RESTORE ↗</button>
-          </div>
-
-          <button class="download-btn" id="downloadEncryptedBtn">
-            DOWNLOAD ENCRYPTED FILE ↓
+          <button class="download-button" id="downloadEncryptedBtn">
+            ↓ &nbsp; DOWNLOAD ENCRYPTED FILE
           </button>
         </div>
-
       </div>
     </section>
 
-    <!-- ACTIVITY -->
-    <section class="activity-section" id="activity">
-      <div class="section-heading">
+    <section class="terminal-section" id="terminal">
+      <div class="section-head">
         <div>
-          <p class="section-tag">03 / SYSTEM MONITOR</p>
-          <h2>Activity Terminal<span>.</span></h2>
+          <div class="overline">02 — MONITORING MODULE</div>
+          <h2>THE BLACK BOX<span>.</span></h2>
         </div>
-        <div class="terminal-live"><span class="pulse"></span> LIVE OUTPUT</div>
+        <div class="terminal-status"><i></i> LIVE SYSTEM OUTPUT</div>
       </div>
 
       <div class="terminal">
-        <div class="terminal-top">
-          <div class="terminal-dots"><i></i><i></i><i></i></div>
-          <span>cloudbox@security:~</span>
-          <span class="terminal-label">SYSTEM LOG</span>
+        <div class="terminal-header">
+          <div class="terminal-controls"><i></i><i></i><i></i></div>
+          <span>root@cloudbox:~</span>
+          <span class="terminal-right">SYSTEM CONSOLE / 001</span>
         </div>
-
-        <div class="terminal-body">
-          <div class="terminal-welcome">
-            <span class="terminal-prompt">➜</span>
-            SYSTEM INITIALIZED. WAITING FOR OPERATIONS...
-          </div>
-          <div id="status" class="status">
-            Ready. Select a file to begin secure processing.
-          </div>
+        <div class="terminal-content">
+          <div class="terminal-welcome">CLOUDBOX SECURITY ENGINE [VERSION 1.0.26]</div>
+          <div class="terminal-welcome">------------------------------------------</div>
+          <div class="terminal-prompt">➜ INITIALIZATION COMPLETE. SYSTEM READY.</div>
+          <div id="status" class="status">Select a file to begin secure processing.</div>
           <div id="blockResults" class="block-results"></div>
-          <span class="cursor">▋</span>
+          <span class="terminal-cursor">█</span>
         </div>
       </div>
     </section>
 
     <footer>
-      <span>© 2026 CLOUDBOX / DIGITAL FORTRESS</span>
-      <span>BUILT FOR PRIVACY. POWERED BY SECURITY.</span>
+      <span>CLOUDBOX © 2026</span>
+      <span>ENGINEERED FOR DATA PRIVACY.</span>
+      <span>END OF INTERFACE / 001</span>
     </footer>
 
   </main>
 </div>
 
 <script src="script.js"></script>
-
 <script>
-  const themeToggle = document.getElementById("themeToggle");
-
-  themeToggle.addEventListener("click", () => {
+  document.getElementById("themeToggle").addEventListener("click", () => {
     document.body.classList.toggle("light-theme");
-    themeToggle.textContent =
-      document.body.classList.contains("light-theme") ? "☀" : "◐";
   });
 
   const fileInput = document.getElementById("fileInput");
@@ -288,9 +224,8 @@
   fileInput.addEventListener("change", () => {
     fileName.textContent = fileInput.files.length
       ? fileInput.files[0].name
-      : "No file selected";
+      : "NO FILE SELECTED";
   });
 </script>
-
 </body>
 </html>
