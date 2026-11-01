@@ -20,12 +20,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const userGreeting = document.getElementById('userGreeting');
     const logoutBtn = document.getElementById('logoutBtn');
 
-    // Display Logged In User
     if (userGreeting && currentUser) {
         userGreeting.innerText = `● Logged in as: ${currentUser}`;
     }
 
-    // Logout Click Listener
     if (logoutBtn) {
         logoutBtn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -89,10 +87,10 @@ function handleFile(file) {
 
     if (segmentBtn) segmentBtn.disabled = false;
     if (encryptBtn) encryptBtn.disabled = true;
-    if (uploadBtn) uploadBtn.disabled = false; // Enable raw upload option
+    if (uploadBtn) uploadBtn.disabled = false; 
     if (decryptBtn) decryptBtn.disabled = true;
 
-    setStatus(`File selected: ${file.name} (${(file.size / 1024).toFixed(2)} KB). Ready to process!`, 'success');
+    setStatus(`File selected: ${file.name} (${(file.size / 1024).toFixed(2)} KB). Ready!`, 'success');
 }
 
 // -------------------------------------------------------------
