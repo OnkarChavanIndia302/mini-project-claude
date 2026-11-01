@@ -4,7 +4,7 @@ let fileBlocks = [];
 let encryptedBlocks = [];
 let aesKey = null;
 
-const BACKEND_URL = 'http://localhost:3000';
+const API_URL = "https://cloudbox-backend.onrender.com/api/auth/register";
 
 // DOM Elements
 const statusDiv = document.getElementById('status');
