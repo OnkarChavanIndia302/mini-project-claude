@@ -89,10 +89,10 @@ function handleFile(file) {
 
     if (segmentBtn) segmentBtn.disabled = false;
     if (encryptBtn) encryptBtn.disabled = true;
-    if (uploadBtn) uploadBtn.disabled = false; // Always ready to upload if raw option chosen
+    if (uploadBtn) uploadBtn.disabled = false; // Raw upload sathi button active thevla
     if (decryptBtn) decryptBtn.disabled = true;
 
-    setStatus(`File selected: ${file.name} (${(file.size / 1024).toFixed(2)} KB). Ready to segment or upload.`, 'info');
+    setStatus(`File selected: ${file.name} (${(file.size / 1024).toFixed(2)} KB). Ready to segment, encrypt, or raw upload!`, 'success');
 }
 
 // -------------------------------------------------------------
