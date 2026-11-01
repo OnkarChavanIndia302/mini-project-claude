@@ -1,26 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<<<<<<< HEAD
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="CloudBox secure file storage project demo">
-  <title>CloudBox | Secure Storage & Testing</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="script.js" defer></script>
-</head>
-<body>
-  <header class="site-header">
-    <a class="brand" href="#overview"><span class="brand-mark">C</span> CloudBox</a>
-    <nav aria-label="Main navigation">
-      <a href="#overview">Overview</a>
-      <a href="#architecture">Architecture</a>
-      <a href="#security">Security Lab</a>
-      <a href="#testing">Testing</a>
-      <a href="#team">Project</a>
-    </nav>
-  </header>
-=======
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CloudBox Enterprise | Secure Cryptographic Vault</title>
@@ -29,7 +9,6 @@
 </head>
 <body>
     <div class="ambient-glow"></div>
-    
     <div class="app-container">
         <!-- Top Navigation Bar -->
         <header class="navbar">
@@ -48,18 +27,15 @@
                 <button id="logoutBtn" class="sm-btn amber-btn" style="padding: 6px 12px; cursor: pointer;">Logout</button>
             </div>
         </header>
->>>>>>> 2bba12bbde67a3f12be3ed58d32689efadb141f4
 
         <!-- Main Dashboard Grid (Operations) -->
         <main class="dashboard-grid">
-            
             <!-- Panel 1: File Ingestion & Segmentation -->
             <section class="glass-card">
                 <div class="card-heading">
                     <span class="step-badge">01</span>
                     <h2>Secure File Ingestion</h2>
                 </div>
-                
                 <div class="dropzone-wrapper" id="dropZone">
                     <input type="file" id="fileInput" />
                     <div class="dropzone-content">
@@ -68,7 +44,6 @@
                         <span class="file-hint">Supports PDF, DOCX, Images, Archives</span>
                     </div>
                 </div>
-
                 <div class="control-group">
                     <label for="chunkSize">Chunk Segmentation Size:</label>
                     <select id="chunkSize">
@@ -77,129 +52,17 @@
                         <option value="1024">1024 KB (High Throughput)</option>
                     </select>
                 </div>
-
                 <button id="segmentBtn" class="action-btn cyan-glow" disabled>
                     <span>⚡ Segment File Into Blocks</span>
                 </button>
             </section>
 
-<<<<<<< HEAD
-    <!-- NEW 10 TEST CASES SECTION -->
-    <section class="section testing-section" id="testing">
-      <div class="section-heading">
-        <p class="eyebrow">SCENARIOS · 01–10</p>
-        <h2>Project test cases</h2>
-        <p>Comprehensive validation checklist for CloudBox core features, encryption, and AWS S3 integration.</p>
-      </div>
-
-      <div class="testing-card">
-        <div class="table-container">
-          <table class="test-table">
-            <thead>
-              <tr>
-                <th>TEST ID</th>
-                <th>SCENARIO</th>
-                <th>EXPECTED RESULT</th>
-                <th>ACTUAL RESULT</th>
-                <th>STATUS</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>TC-01</td>
-                <td><strong>Homepage loading</strong></td>
-                <td>Home page renders with correct content and no critical browser errors.</td>
-                <td><input type="text" class="actual-input" value="Working Fine"></td>
-                <td>
-                  <select class="status-select">
-                    <option value="PASS" selected>PASS</option>
-                    <option value="FAIL">FAIL</option>
-                  </select>
-                </td>
-              </tr>
-              <tr>
-                <td>TC-02</td>
-                <td><strong>Navigation & UI Layout</strong></td>
-                <td>All navigation links scroll correctly and UI remains fully responsive.</td>
-                <td><input type="text" class="actual-input" value="Working Fine"></td>
-                <td>
-                  <select class="status-select">
-                    <option value="PASS" selected>PASS</option>
-                    <option value="FAIL">FAIL</option>
-                  </select>
-                </td>
-              </tr>
-              <tr>
-                <td>TC-03</td>
-                <td><strong>File Selection</strong></td>
-                <td>Selected file details (name, size, MIME type) are dynamically updated in UI.</td>
-                <td><input type="text" class="actual-input" value="Working Fine"></td>
-                <td>
-                  <select class="status-select">
-                    <option value="PASS" selected>PASS</option>
-                    <option value="FAIL">FAIL</option>
-                  </select>
-                </td>
-              </tr>
-              <tr>
-                <td>TC-04</td>
-                <td><strong>Block Segmentation</strong></td>
-                <td>File correctly splits into chosen block size (64KB - 1024KB) calculation.</td>
-                <td><input type="text" class="actual-input" value="Working Fine"></td>
-                <td>
-                  <select class="status-select">
-                    <option value="PASS" selected>PASS</option>
-                    <option value="FAIL">FAIL</option>
-                  </select>
-                </td>
-              </tr>
-              <tr>
-                <td>TC-05</td>
-                <td><strong>AES-256-GCM Encryption</strong></td>
-                <td>Web Crypto API generates keys and encrypts file blocks locally in browser memory.</td>
-                <td><input type="text" class="actual-input" value="Working Fine"></td>
-                <td>
-                  <select class="status-select">
-                    <option value="PASS" selected>PASS</option>
-                    <option value="FAIL">FAIL</option>
-                  </select>
-                </td>
-              </tr>
-              <tr>
-                <td>TC-06</td>
-                <td><strong>Backend API Connection</strong></td>
-                <td>Frontend successfully communicates with backend Node.js server without CORS errors.</td>
-                <td><input type="text" class="actual-input" value="Working Fine"></td>
-                <td>
-                  <select class="status-select">
-                    <option value="PASS" selected>PASS</option>
-                    <option value="FAIL">FAIL</option>
-                  </select>
-                </td>
-              </tr>
-              <tr>
-                <td>TC-07</td>
-                <td><strong>AWS S3 Cloud Upload</strong></td>
-                <td>Encrypted package (.json format) uploads successfully to target AWS S3 bucket.</td>
-                <td><input type="text" class="actual-input" value="Working Fine"></td>
-                <td>
-                  <select class="status-select">
-                    <option value="PASS" selected>PASS</option>
-                    <option value="FAIL">FAIL</option>
-                  </select>
-                </td>
-              </tr>
-              <tr>
-                <td>TC-08</td>
-                <td><strong>Decryption & File
-=======
             <!-- Panel 2: Cryptographic & AWS S3 Operations -->
             <section class="glass-card">
                 <div class="card-heading">
                     <span class="step-badge">02</span>
                     <h2>Cryptographic Pipeline</h2>
                 </div>
-
                 <div class="pipeline-stack">
                     <div class="pipeline-item">
                         <div class="pipe-info">
@@ -208,7 +71,6 @@
                         </div>
                         <button id="encryptBtn" class="sm-btn cyan-btn" disabled>Encrypt</button>
                     </div>
-
                     <div class="pipeline-item">
                         <div class="pipe-info">
                             <h4>AWS S3 Cloud Dispatch</h4>
@@ -216,7 +78,6 @@
                         </div>
                         <button id="uploadBtn" class="sm-btn amber-btn" disabled>Upload S3</button>
                     </div>
-
                     <div class="pipeline-item">
                         <div class="pipe-info">
                             <h4>Restore & Reconstruct</h4>
@@ -226,7 +87,6 @@
                     </div>
                 </div>
             </section>
-
         </main>
 
         <!-- Terminal Log Console -->
@@ -247,19 +107,13 @@
 
     <!-- Page Protection & Session Script -->
     <script>
-        // 1. Check if user is logged in via JWT Token
         const token = localStorage.getItem('cloudbox_token');
         const username = localStorage.getItem('cloudbox_user');
-
         if (!token) {
-            // Not logged in, redirect to login page immediately
             window.location.href = 'login.html';
         } else if (username) {
-            // Display logged-in user name
             document.getElementById('userInfoDisplay').innerText = `Logged in as: ${username}`;
         }
-
-        // 2. Logout functionality
         document.getElementById('logoutBtn').addEventListener('click', () => {
             localStorage.removeItem('cloudbox_token');
             localStorage.removeItem('cloudbox_user');
@@ -269,4 +123,3 @@
     <script src="script.js"></script>
 </body>
 </html>
->>>>>>> 2bba12bbde67a3f12be3ed58d32689efadb141f4
