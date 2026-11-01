@@ -168,3 +168,42 @@ body {
 .c-red { background: #ef4444; } .c-yellow { background: #f59e0b; } .c-green { background: #10b981; }
 .terminal-title { margin-left: 14px; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-muted); }
 .terminal-screen { padding: 1.2rem; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #38bdf8; min-height: 70px; max-height: 140px; overflow-y: auto; }
+
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 85vh;
+}
+
+.auth-box {
+    width: 100%;
+    max-width: 400px;
+    padding: 2.2rem;
+}
+
+.brand-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+.brand-header .brand-icon { font-size: 2.5rem; }
+.brand-header h2 { font-size: 1.4rem; margin-top: 8px; }
+.brand-header p { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+
+.field-group { margin-bottom: 1rem; }
+
+.auth-status {
+    margin-top: 1rem;
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.auth-footer {
+    margin-top: 1.5rem;
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+.auth-footer a { color: var(--accent-cyan); text-decoration: none; font-weight: 600; }
+.auth-footer a:hover { text-decoration: underline; }
