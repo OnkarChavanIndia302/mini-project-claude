@@ -187,47 +187,54 @@ if (encryptBtn) {
     });
 }
 
-if (uploadBtn) {
-    uploadBtn.addEventListener('click', async () => {
-        if (!encryptedBlocks.length || !fileMetadata) {
-            setStatus('No encrypted payload found.', 'error');
-            return;
-        }
-
-        uploadBtn.disabled = true;
-        setStatus('Requesting AWS S3 Upload URL from Backend Server...');
-
-        try {
-            const response = await fetch(`${BACKEND_URL}/api/upload-url`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ fileName: fileMetadata.name, contentType: 'application/json' })
-            });
-
-            const data = await response.json();
-            if (!response.ok || !data.uploadUrl) throw new Error(data.error || 'Failed to get upload URL');
-
-            const payload = { metadata: fileMetadata, blocks: encryptedBlocks };
-            setStatus('Uploading encrypted package directly to AWS S3...');
-
-            const s3Response = await fetch(data.uploadUrl, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            if (s3Response.ok) {
-                setStatus(`Uploaded to AWS S3 Bucket! Object Key: ${data.key}`, 'success');
-            } else {
-                throw new Error('Direct S3 upload failed');
+// -------------------------------------------------------------
+    // 3. AWS S3 UPLOAD PIPELINE
+    // -------------------------------------------------------------
+    if (uploadBtn) {
+        uploadBtn.addEventListener('click', async () => {
+            if (!encryptedBlocks.length || !fileMetadata) {
+                setStatus('No encrypted payload found.', 'error');
+                return;
             }
-        } catch (err) {
-            setStatus(`Cloud Upload Error: ${err.message}`, 'error');
-        } finally {
-            uploadBtn.disabled = false;
-        }
-    });
-}
+            uploadBtn.disabled = true;
+            setStatus('Requesting AWS S3 Upload URL from Backend Server...');
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/upload-url`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fileName: fileMetadata.name, contentType: 'application/json' })
+                });
+
+                // Check if response is valid JSON
+                const contentType = response.headers.get("content-type");
+                if (!contentType || !contentType.includes("application/json")) {
+                    throw new Error("Backend server returned HTML instead of JSON. Check Render logs / AWS S3 keys.");
+                }
+
+                const data = await response.json();
+                if (!response.ok || !data.uploadUrl) throw new Error(data.error || 'Failed to get upload URL');
+
+                const payload = { metadata: fileMetadata, blocks: encryptedBlocks };
+                setStatus('Uploading encrypted package directly to AWS S3...');
+                
+                const s3Response = await fetch(data.uploadUrl, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (s3Response.ok) {
+                    setStatus(`Uploaded to AWS S3 Bucket! Object Key: ${data.key}`, 'success');
+                } else {
+                    throw new Error('Direct S3 upload failed');
+                }
+            } catch (err) {
+                setStatus(`Cloud Upload Error: ${err.message}`, 'error');
+            } finally {
+                uploadBtn.disabled = false;
+            }
+        });
+    }
 
 if (decryptBtn) {
     decryptBtn.addEventListener('click', async () => {
