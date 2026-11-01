@@ -138,6 +138,7 @@ if (uploadBtn) {
         }
         uploadBtn.disabled = true;
         setStatus('Requesting AWS S3 Upload URL from Backend Server...');
+        
         try {
             const response = await fetch(`${BACKEND_URL}/api/upload-url`, {
                 method: 'POST',
