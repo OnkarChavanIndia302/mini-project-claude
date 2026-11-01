@@ -9,7 +9,6 @@
 </head>
 <body>
     <div class="ambient-glow"></div>
-    
     <div class="auth-container">
         <div class="glass-card auth-box">
             <div class="brand-header">
@@ -17,7 +16,6 @@
                 <h2>Welcome Back</h2>
                 <p>Sign in to access your encrypted Cloud Storage</p>
             </div>
-
             <form id="loginForm">
                 <div class="field-group">
                     <label>Email Address</label>
@@ -27,20 +25,17 @@
                     <label>Password</label>
                     <input type="password" id="loginPassword" placeholder="••••••••••••" required />
                 </div>
-                
                 <button type="submit" class="action-btn emerald-glow">Secure Login</button>
             </form>
-
             <div id="authStatus" class="auth-status"></div>
-
             <div class="auth-footer">
                 <p>Don't have an account? <a href="register.html">Register here</a></p>
             </div>
         </div>
     </div>
-
     <script>
-        const BACKEND_URL = 'http://localhost:3000';
+        // 🟢 Live Render Backend URL Configured
+        const BACKEND_URL = 'https://mini-project-claude.onrender.com';
         const form = document.getElementById('loginForm');
         const statusDiv = document.getElementById('authStatus');
 
@@ -58,14 +53,16 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
                 });
-                const data = await res.json();
 
+                const data = await res.json();
                 if (res.ok && data.success) {
                     localStorage.setItem('cloudbox_token', data.token);
                     localStorage.setItem('cloudbox_user', data.username);
                     statusDiv.innerText = `Welcome ${data.username}! Redirecting to Vault...`;
                     statusDiv.style.color = "#10b981";
-                    setTimeout(() => { window.location.href = 'index.html'; }, 1200);
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1200);
                 } else {
                     throw new Error(data.error || "Login failed");
                 }
