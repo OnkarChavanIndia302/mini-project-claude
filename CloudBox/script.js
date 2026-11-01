@@ -124,11 +124,13 @@ function handleFile(file) {
     fileBlocks = [];
     encryptedBlocks = [];
     aesKey = null;
-
+    
+    // 🟢 Segment button enable kara
+    if (segmentBtn) segmentBtn.disabled = false;
+    
     if (encryptBtn) encryptBtn.disabled = true;
     if (uploadBtn) uploadBtn.disabled = true;
     if (decryptBtn) decryptBtn.disabled = true;
-
     setStatus(`File selected: ${file.name} (${(file.size / 1024).toFixed(2)} KB). Click 'Segment File'.`, 'info');
 }
 
