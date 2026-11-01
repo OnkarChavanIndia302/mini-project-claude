@@ -11,6 +11,7 @@ const BACKEND_URL = 'https://mini-project-claude.onrender.com';
 // -------------------------------------------------------------
 const currentUser = localStorage.getItem('cloudbox_user');
 
+// Redirect to login if user is not authenticated
 if (!currentUser && !window.location.pathname.includes('login.html') && !window.location.pathname.includes('register.html')) {
     window.location.href = 'login.html';
 }
