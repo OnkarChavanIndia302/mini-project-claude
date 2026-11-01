@@ -18,7 +18,7 @@ app.use(cors());
 app.use(express.json());
 
 // 1. Connect to MongoDB Atlas (Cloud Database)
-const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://onkarchavan:<mongodb+srv://<db_username>:<db_password>@cluster0.3xrsxbi.mongodb.net/>@cluster0.xxxxx.mongodb.net/cloudbox_db?retryWrites=true&w=majority";
+const MONGO_URI = process.env.MONGO_URI;
 
 mongoose.connect(MONGO_URI)
   .then(() => {
