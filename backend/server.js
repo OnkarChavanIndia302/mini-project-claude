@@ -7,10 +7,7 @@ const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
 const app = express();
-<<<<<<< HEAD
-// const PORT = 3000;
-=======
->>>>>>> 2bba12bbde67a3f12be3ed58d32689efadb141f4
+
 const PORT = process.env.PORT || 3000;
 
 // CloudBox S3 configuration
