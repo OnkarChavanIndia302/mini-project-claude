@@ -3,123 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CloudBox Enterprise | Secure Cryptographic Vault</title>
+    <title>CloudBox | Secure Cloud Vault</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="ambient-glow"></div>
     <div class="app-container">
-        <!-- Top Navigation Bar -->
-        <header class="navbar">
-            <div class="brand">
-                <div class="brand-icon">🛡️</div>
-                <div class="brand-text">
-                    <h1>CloudBox <span class="enterprise-badge">ENTERPRISE</span></h1>
-                    <p>AES-256-GCM Zero-Knowledge Storage Vault</p>
-                </div>
+        <!-- Top Navigation -->
+        <header class="app-header">
+            <div class="logo">
+                <span class="logo-icon">🛡️</span>
+                <span class="logo-text">CloudBox <strong>Vault</strong></span>
             </div>
-            <div class="header-right" style="display: flex; align-items: center; gap: 15px;">
-                <div class="system-status-indicator">
-                    <span class="pulse-dot"></span>
-                    <span id="userInfoDisplay">MongoDB & AWS S3 Active</span>
-                </div>
-                <button id="logoutBtn" class="sm-btn amber-btn" style="padding: 6px 12px; cursor: pointer;">Logout</button>
+            <div class="user-profile">
+                <span id="userGreeting" class="status-badge">● Logged in</span>
+                <button id="logoutBtn" class="btn-logout">Logout</button>
             </div>
         </header>
 
-        <!-- Main Dashboard Grid (Operations) -->
+        <!-- Main Dashboard Content -->
         <main class="dashboard-grid">
-            <!-- Panel 1: File Ingestion & Segmentation -->
-            <section class="glass-card">
-                <div class="card-heading">
-                    <span class="step-badge">01</span>
-                    <h2>Secure File Ingestion</h2>
-                </div>
-                <div class="dropzone-wrapper" id="dropZone">
-                    <input type="file" id="fileInput" />
-                    <div class="dropzone-content">
-                        <div class="icon-cloud">📁</div>
-                        <p>Drag & drop file here or <span>browse local storage</span></p>
-                        <span class="file-hint">Supports PDF, DOCX, Images, Archives</span>
+            
+            <!-- Left Panel: File Selection & Upload Mode -->
+            <section class="card upload-card">
+                <h3>📁 Select File</h3>
+                <div id="dropZone" class="drop-zone">
+                    <input type="file" id="fileInput" hidden>
+                    <div class="drop-zone-content">
+                        <div class="upload-icon">☁️</div>
+                        <p class="drop-title">Drag & drop your file here</p>
+                        <p class="drop-sub">or <span class="browse-link" onclick="document.getElementById('fileInput').click()">browse files</span></p>
                     </div>
                 </div>
-                <div class="control-group">
-                    <label for="chunkSize">Chunk Segmentation Size:</label>
-                    <select id="chunkSize">
-                        <option value="64">64 KB (High Granularity)</option>
-                        <option value="256" selected>256 KB (Optimal Enterprise)</option>
-                        <option value="1024">1024 KB (High Throughput)</option>
-                    </select>
+
+                <!-- Settings & Options -->
+                <div class="options-group">
+                    <div class="field">
+                        <label for="chunkSize">Chunk Size:</label>
+                        <select id="chunkSize">
+                            <option value="256">256 KB (Recommended)</option>
+                            <option value="64">64 KB (Small chunks)</option>
+                            <option value="1024">1 MB (Fast upload)</option>
+                        </select>
+                    </div>
+
+                    <!-- MongoDB Direct Raw Save Checkbox Option -->
+                    <div class="field-checkbox">
+                        <input type="checkbox" id="storePlainToMongo">
+                        <label for="storePlainToMongo">Store unencrypted raw file directly in MongoDB Atlas</label>
+                    </div>
                 </div>
-                <button id="segmentBtn" class="action-btn cyan-glow" disabled>
-                    <span>⚡ Segment File Into Blocks</span>
-                </button>
             </section>
 
-            <!-- Panel 2: Cryptographic & AWS S3 Operations -->
-            <section class="glass-card">
-                <div class="card-heading">
-                    <span class="step-badge">02</span>
-                    <h2>Cryptographic Pipeline</h2>
-                </div>
-                <div class="pipeline-stack">
-                    <div class="pipeline-item">
-                        <div class="pipe-info">
-                            <h4>AES-256-GCM Encryption</h4>
-                            <p>Local browser zero-knowledge encryption</p>
-                        </div>
-                        <button id="encryptBtn" class="sm-btn cyan-btn" disabled>Encrypt</button>
-                    </div>
-                    <div class="pipeline-item">
-                        <div class="pipe-info">
-                            <h4>AWS S3 Cloud Dispatch</h4>
-                            <p>Push encrypted chunks to remote S3 bucket</p>
-                        </div>
-                        <button id="uploadBtn" class="sm-btn amber-btn" disabled>Upload S3</button>
-                    </div>
-                    <div class="pipeline-item">
-                        <div class="pipe-info">
-                            <h4>Restore & Reconstruct</h4>
-                            <p>Decrypt back to original file format</p>
-                        </div>
-                        <button id="decryptBtn" class="sm-btn emerald-btn" disabled>Restore</button>
-                    </div>
+            <!-- Right Panel: Processing Steps -->
+            <section class="card process-card">
+                <h3>⚡ Action Pipeline</h3>
+                <div class="action-buttons">
+                    <button id="segmentBtn" class="btn btn-primary" disabled>
+                        <span>⚡</span> 1. Segment File
+                    </button>
+                    <button id="encryptBtn" class="btn btn-warning" disabled>
+                        <span>🔒</span> 2. Encrypt (AES-256)
+                    </button>
+                    <button id="uploadBtn" class="btn btn-success" disabled>
+                        <span>☁️</span> 3. Upload File
+                    </button>
+                    <button id="decryptBtn" class="btn btn-info" disabled>
+                        <span>🔓</span> 4. Decrypt & Download
+                    </button>
                 </div>
             </section>
         </main>
 
-        <!-- Terminal Log Console -->
-        <section class="terminal-container">
-            <div class="terminal-top">
-                <div class="window-controls">
-                    <span class="c-red"></span>
-                    <span class="c-yellow"></span>
-                    <span class="c-green"></span>
-                </div>
-                <span class="terminal-title">cloudbox_system_audit.sh</span>
+        <!-- Bottom Audit Log Terminal -->
+        <footer class="audit-terminal">
+            <div class="terminal-header">
+                <span class="dot red"></span>
+                <span class="dot yellow"></span>
+                <span class="dot green"></span>
+                <span class="terminal-title">Console Logs</span>
             </div>
-            <div id="status" class="terminal-screen">
-                [SYSTEM INITIALIZED] Vault secured. Awaiting file upload pipeline...
+            <div id="status" class="terminal-body">
+                [SYSTEM READY] Select a file to start...
             </div>
-        </section>
+        </footer>
     </div>
 
-    <!-- Page Protection & Session Script -->
-    <script>
-        const token = localStorage.getItem('cloudbox_token');
-        const username = localStorage.getItem('cloudbox_user');
-        if (!token) {
-            window.location.href = 'login.html';
-        } else if (username) {
-            document.getElementById('userInfoDisplay').innerText = `Logged in as: ${username}`;
-        }
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            localStorage.removeItem('cloudbox_token');
-            localStorage.removeItem('cloudbox_user');
-            window.location.href = 'login.html';
-        });
-    </script>
     <script src="script.js"></script>
 </body>
 </html>
