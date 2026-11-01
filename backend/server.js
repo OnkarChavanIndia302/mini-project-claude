@@ -1,49 +1,87 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-require('dotenv').config();
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
 const app = express();
+app.use(express.json({ limit: '50mb' }));
+app.use(cors({ origin: '*' }));
 
-// 🟢 CORS Configuration (Fixes "Failed to fetch" on AWS Amplify)
-app.use(cors({
-    origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
-app.use(express.json());
-
-// MongoDB Connection
-const MONGO_URI = process.env.MONGO_URI;
-
-mongoose.connect(MONGO_URI)
+// 🍃 MongoDB Connection
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB Atlas Connected Successfully! 🍃🚀'))
-  .catch(err => console.error('MongoDB Atlas Connection Error:', err.message));
+  .catch(err => console.error('MongoDB Connection Error:', err));
 
-// Basic Health Check Route
-app.get('/', (req, res) => {
-    res.json({ message: 'CloudBox Backend API is Live!' });
+// 🔐 AWS S3 Client Setup
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION || 'us-east-1',
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+  }
 });
 
-// Authentication Routes
-app.post('/api/auth/register', (req, res) => {
+// User Auth Schema & Routes (Login / Register)
+const UserSchema = new mongoose.Schema({
+  username: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true }
+});
+const User = mongoose.model('User', UserSchema);
+
+app.post('/api/auth/register', async (req, res) => {
+  try {
     const { username, email, password } = req.body;
-    if (!username || !email || !password) {
-        return res.status(400).json({ success: false, error: 'All fields required' });
-    }
-    return res.status(200).json({ success: true, message: 'User registered successfully!' });
+    const existingUser = await User.findOne({ email });
+    if (existingUser) return res.status(400).json({ success: false, error: 'User already exists' });
+    
+    const user = new User({ username, email, password });
+    await user.save();
+    res.json({ success: true, message: 'User created' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
+  try {
     const { email, password } = req.body;
-    if (!email || !password) {
-        return res.status(400).json({ success: false, error: 'Email & Password required' });
-    }
-    return res.status(200).json({ success: true, token: 'dummy_token', username: 'onkar' });
+    const user = await User.findOne({ email, password });
+    if (!user) return res.status(400).json({ success: false, error: 'Invalid email or password' });
+    
+    res.json({ success: true, username: user.username, token: 'cloudbox_demo_token' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ☁️ AWS S3 Upload Presigned URL Generator Endpoint
+app.post('/api/upload-url', async (req, res) => {
+  try {
+    const { fileName, contentType } = req.body;
+    const key = `encrypted/${Date.now()}_${fileName}.json`;
+
+    const command = new PutObjectCommand({
+      Bucket: process.env.S3_BUCKET_NAME,
+      Key: key,
+      ContentType: contentType || 'application/json'
+    });
+
+    const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+    res.json({ success: true, uploadUrl, key });
+  } catch (err) {
+    console.error("S3 Upload Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/', (req, res) => {
+  res.send('CloudBox Backend Active 🚀');
 });
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
-    console.log(`CloudBox backend running on port ${PORT}`);
+  console.log(`CloudBox backend running on port ${PORT}`);
 });
