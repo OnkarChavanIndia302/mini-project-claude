@@ -89,7 +89,7 @@ function handleFile(file) {
 
     if (segmentBtn) segmentBtn.disabled = false;
     if (encryptBtn) encryptBtn.disabled = true;
-    if (uploadBtn) uploadBtn.disabled = false; // Raw upload & normal upload ready
+    if (uploadBtn) uploadBtn.disabled = false; // Enable raw upload option
     if (decryptBtn) decryptBtn.disabled = true;
 
     setStatus(`File selected: ${file.name} (${(file.size / 1024).toFixed(2)} KB). Ready to process!`, 'success');
