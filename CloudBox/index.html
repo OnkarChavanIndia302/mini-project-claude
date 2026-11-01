@@ -3,121 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | CloudBox Vault</title>
+    <title>CloudBox | Secure Cloud Vault</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            background-color: #0f172a !important;
-            color: #f8fafc;
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .auth-card {
-            background: #1e293b;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 36px;
-            width: 100%;
-            max-width: 380px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-            text-align: left;
-        }
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            margin-bottom: 18px;
-        }
-        .input-group label { font-size: 13px; color: #cbd5e1; font-weight: 500; }
-        .input-group input {
-            background: #0f172a;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            padding: 10px 14px;
-            color: #fff;
-            font-size: 14px;
-            outline: none;
-        }
-        .btn-submit {
-            width: 100%;
-            background: #3b82f6;
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 10px;
-            font-size: 15px;
-        }
-        .btn-submit:hover { background: #2563eb; }
-        #authError { color: #ef4444; font-size: 13px; margin-top: 10px; text-align: center; }
-    </style>
 </head>
 <body>
-    <div class="auth-card">
-        <div style="text-align: center; margin-bottom: 20px;">
-            <span style="font-size: 38px;">🔐</span>
-            <h2 style="margin: 8px 0 4px; color: #fff;">Welcome Back</h2>
-            <p style="font-size: 13px; color: #94a3b8; margin: 0;">Sign in to access your secure Cloud Vault</p>
-        </div>
-        <form id="loginForm">
-            <div class="input-group">
-                <label for="email">Email Address</label>
-                <input type="email" id="email" required placeholder="name@example.com">
+    <div class="app-container">
+        <!-- Top Navigation Header -->
+        <header class="app-header">
+            <div class="logo">
+                <span class="logo-icon">🛡️</span>
+                <span class="logo-text">CloudBox <strong>Vault</strong></span>
             </div>
-            <div class="input-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" required placeholder="••••••••">
+            <div class="user-profile">
+                <span id="userGreeting" class="status-badge">● Logged in</span>
+                <button id="logoutBtn" class="btn-logout">Logout</button>
             </div>
-            <button type="submit" class="btn-submit">Secure Login</button>
-        </form>
-        <div id="authError"></div>
-        <div style="text-align: center; margin-top: 20px; font-size: 13px; color: #94a3b8;">
-            <p>Don't have an account? <a href="register.html" style="color: #38bdf8; text-decoration: none;">Register here</a></p>
-        </div>
+        </header>
+
+        <!-- Main Dashboard Layout -->
+        <main class="dashboard-grid">
+            
+            <!-- Left Panel: File Selection & Direct MongoDB Store Option -->
+            <section class="card upload-card">
+                <h3>📁 Select File</h3>
+                <div id="dropZone" class="drop-zone">
+                    <input type="file" id="fileInput" hidden>
+                    <div class="drop-zone-content">
+                        <div class="drop-icon" style="font-size: 36px; margin-bottom: 8px;">☁️</div>
+                        <p class="drop-title">Drag & drop your file here</p>
+                        <p class="drop-sub">or <span class="browse-link" onclick="document.getElementById('fileInput').click()" style="color: #38bdf8; cursor: pointer; text-decoration: underline;">browse files</span></p>
+                    </div>
+                </div>
+
+                <!-- Settings & Raw MongoDB Option -->
+                <div class="options-group">
+                    <div class="field" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px;">
+                        <label for="chunkSize" style="font-size: 13px; color: #cbd5e1;">Chunk Size:</label>
+                        <select id="chunkSize">
+                            <option value="256">256 KB (Recommended)</option>
+                            <option value="64">64 KB (Small chunks)</option>
+                            <option value="1024">1 MB (Fast upload)</option>
+                        </select>
+                    </div>
+
+                    <!-- MongoDB Direct Raw Save Checkbox Option -->
+                    <div class="field-checkbox" style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #38bdf8; margin-top: 10px;">
+                        <input type="checkbox" id="storePlainToMongo" style="accent-color: #06b6d4; width: 16px; height: 16px;">
+                        <label for="storePlainToMongo">Store unencrypted raw file directly in MongoDB Atlas</label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Panel: Processing Action Buttons -->
+            <section class="card process-card">
+                <h3>⚡ Action Pipeline</h3>
+                <div class="action-buttons">
+                    <button id="segmentBtn" class="btn btn-primary" disabled>
+                        <span>⚡</span> 1. Segment File
+                    </button>
+                    <button id="encryptBtn" class="btn btn-warning" disabled>
+                        <span>🔒</span> 2. Encrypt (AES-256)
+                    </button>
+                    <button id="uploadBtn" class="btn btn-success" disabled>
+                        <span>☁️</span> 3. Upload File
+                    </button>
+                    <button id="decryptBtn" class="btn btn-info" disabled>
+                        <span>🔓</span> 4. Decrypt & Download
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Console Log Terminal -->
+        <footer class="audit-terminal">
+            <div class="terminal-header">
+                <span class="dot red"></span>
+                <span class="dot yellow"></span>
+                <span class="dot green"></span>
+                <span class="terminal-title">Console Logs</span>
+            </div>
+            <div id="status" class="terminal-body">
+                [SYSTEM READY] Select a file to start...
+            </div>
+        </footer>
     </div>
 
-    <script>
-        const BACKEND_URL = 'https://mini-project-claude.onrender.com';
-        const loginForm = document.getElementById('loginForm');
-        const authError = document.getElementById('authError');
-
-        if (loginForm) {
-            loginForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
-                authError.innerText = 'Verifying credentials...';
-                authError.style.color = '#38bdf8';
-
-                try {
-                    const response = await fetch(`${BACKEND_URL}/api/login`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email, password })
-                    });
-                    const data = await response.json();
-
-                    if (response.ok && (data.success || data.token)) {
-                        localStorage.setItem('cloudbox_user', data.username || email.split('@')[0]);
-                        if (data.token) localStorage.setItem('cloudbox_token', data.token);
-                        window.location.href = 'index.html';
-                    } else {
-                        localStorage.setItem('cloudbox_user', email.split('@')[0]);
-                        window.location.href = 'index.html';
-                    }
-                } catch (err) {
-                    localStorage.setItem('cloudbox_user', email.split('@')[0]);
-                    window.location.href = 'index.html';
-                }
-            });
-        }
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
