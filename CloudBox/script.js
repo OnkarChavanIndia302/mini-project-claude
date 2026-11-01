@@ -4,7 +4,7 @@ let fileBlocks = [];
 let encryptedBlocks = [];
 let aesKey = null;
 
-const BACKEND_URL = "[https://mini-project-claude.onrender.com](https://mini-project-claude.onrender.com)";
+const BACKEND_URL = "https://mini-project-claude.onrender.com";
 
 // DOM Elements
 const statusDiv = document.getElementById('status');
