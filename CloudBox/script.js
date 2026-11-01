@@ -140,3 +140,150 @@ if (encryptBtn) {
 
             encryptedBlocks = [];
             for (const block of fileBlocks) {
+                const iv = crypto.getRandomValues(new Uint8Array(12));
+                const encryptedBuffer = await crypto.subtle.encrypt(
+                    { name: 'AES-GCM', iv },
+                    aesKey,
+                    block.data
+                );
+                encryptedBlocks.push({
+                    index: block.index,
+                    iv: Array.from(iv),
+                    data: Array.from(new Uint8Array(encryptedBuffer))
+                });
+            }
+            setStatus(`All ${encryptedBlocks.length} blocks encrypted with AES-256-GCM! Ready for AWS S3 Upload.`, 'success');
+            if (uploadBtn) uploadBtn.disabled = false;
+            if (decryptBtn) decryptBtn.disabled = false;
+        } catch (err) {
+            setStatus(`Encryption failed: ${err.message}`, 'error');
+        }
+    });
+}
+
+// -------------------------------------------------------------
+// 4. UPLOAD PIPELINE (AWS S3 & DIRECT MONGODB RAW OPTION)
+// -------------------------------------------------------------
+if (uploadBtn) {
+    uploadBtn.addEventListener('click', async () => {
+        if (!selectedFile || !fileMetadata) {
+            setStatus('No file selected.', 'error');
+            return;
+        }
+
+        // OPTION A: Store Raw / Unencrypted File directly to MongoDB Atlas
+        if (storePlainCheckbox && storePlainCheckbox.checked) {
+            uploadBtn.disabled = true;
+            setStatus('Reading file and uploading directly to MongoDB Atlas without encryption...');
+            try {
+                const reader = new FileReader();
+                reader.readAsDataURL(selectedFile);
+                reader.onload = async () => {
+                    const base64Data = reader.result;
+                    const response = await fetch(`${BACKEND_URL}/api/store-raw`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            username: currentUser || 'onkar',
+                            fileName: fileMetadata.name,
+                            fileType: fileMetadata.type,
+                            fileData: base64Data
+                        })
+                    });
+                    const data = await response.json();
+                    if (response.ok && data.success) {
+                        setStatus(`Saved raw file successfully into MongoDB Atlas! 🍃`, 'success');
+                    } else {
+                        throw new Error(data.error || 'Failed to save to MongoDB');
+                    }
+                    uploadBtn.disabled = false;
+                };
+            } catch (err) {
+                setStatus(`MongoDB Save Error: ${err.message}`, 'error');
+                uploadBtn.disabled = false;
+            }
+            return;
+        }
+
+        // OPTION B: Normal Encrypted AWS S3 Upload Pipeline
+        if (!encryptedBlocks.length) {
+            setStatus('No encrypted payload found. Please Segment & Encrypt first, or tick MongoDB Raw Save.', 'error');
+            return;
+        }
+
+        uploadBtn.disabled = true;
+        setStatus('Requesting AWS S3 Presigned Upload URL from Backend Server...');
+        try {
+            const response = await fetch(`${BACKEND_URL}/api/upload-url`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fileName: fileMetadata.name, contentType: 'application/json' })
+            });
+
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error("Backend server error. Check Render environment keys.");
+            }
+
+            const data = await response.json();
+            if (!response.ok || !data.uploadUrl) throw new Error(data.error || 'Failed to get upload URL');
+
+            const payload = { metadata: fileMetadata, blocks: encryptedBlocks };
+            setStatus('Uploading encrypted package directly to AWS S3...');
+            
+            const s3Response = await fetch(data.uploadUrl, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (s3Response.ok) {
+                setStatus(`Uploaded to AWS S3 Bucket! Object Key: ${data.key}`, 'success');
+            } else {
+                throw new Error('Direct S3 upload failed');
+            }
+        } catch (err) {
+            setStatus(`Cloud Upload Error: ${err.message}`, 'error');
+        } finally {
+            uploadBtn.disabled = false;
+        }
+    });
+}
+
+// -------------------------------------------------------------
+// 5. DECRYPTION PIPELINE
+// -------------------------------------------------------------
+if (decryptBtn) {
+    decryptBtn.addEventListener('click', async () => {
+        if (!aesKey || !encryptedBlocks.length) {
+            setStatus('No key or blocks found for decryption.', 'error');
+            return;
+        }
+        decryptBtn.disabled = true;
+        setStatus('Decrypting blocks and reconstructing file...');
+        try {
+            const decryptedParts = [];
+            for (const block of encryptedBlocks) {
+                const decryptedBuffer = await crypto.subtle.decrypt(
+                    { name: 'AES-GCM', iv: new Uint8Array(block.iv) },
+                    aesKey,
+                    new Uint8Array(block.data)
+                );
+                decryptedParts.push(decryptedBuffer);
+            }
+            const restoredBlob = new Blob(decryptedParts, { type: fileMetadata.type || 'application/octet-stream' });
+            const url = URL.createObjectURL(restoredBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `restored_${fileMetadata.name}`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setStatus(`Decryption successful! Original file restored: restored_${fileMetadata.name}`, 'success');
+        } catch (err) {
+            setStatus(`Decryption Error: ${err.message}`, 'error');
+        } finally {
+            decryptBtn.disabled = false;
+        }
+    });
+}
