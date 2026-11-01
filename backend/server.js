@@ -1,16 +1,16 @@
-
 const express = require("express");
 const cors = require("cors");
-const {
-  S3Client,
-  PutObjectCommand
-} = require("@aws-sdk/client-s3");
-const {
-  getSignedUrl
-} = require("@aws-sdk/s3-request-presigner");
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
 const app = express();
+<<<<<<< HEAD
 // const PORT = 3000;
+=======
+>>>>>>> 2bba12bbde67a3f12be3ed58d32689efadb141f4
 const PORT = process.env.PORT || 3000;
 
 // CloudBox S3 configuration
@@ -20,20 +20,92 @@ const AWS_REGION = "us-east-1";
 app.use(cors());
 app.use(express.json());
 
-// AWS SDK uses your locally configured AWS credentials/profile.
-// Never hardcode AWS secret keys in this file.
-const s3 = new S3Client({
-  region: AWS_REGION
-});
+// 1. Connect to MongoDB Atlas (Cloud Database)
+const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://onkarchavan:<mongodb+srv://<db_username>:<db_password>@cluster0.3xrsxbi.mongodb.net/>@cluster0.xxxxx.mongodb.net/cloudbox_db?retryWrites=true&w=majority";
 
-// Health check: confirms that the backend is running.
-app.get("/", (req, res) => {
-  res.json({
-    message: "CloudBox backend is running!"
+mongoose.connect(MONGO_URI)
+  .then(() => {
+    console.log('MongoDB Atlas Connected Successfully! 🍃🚀');
+  })
+  .catch(err => {
+    console.error('MongoDB Atlas Connection Error:', err.message);
   });
+
+// 2. User Schema & Model for Authentication
+const UserSchema = new mongoose.Schema({
+  username: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now }
 });
 
-// Generate a temporary URL for uploading encrypted data.
+const User = mongoose.model('User', UserSchema);
+
+// 3. User Registration Endpoint
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { username, email, password } = req.body;
+
+    let existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ success: false, error: 'User already exists with this email!' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({
+      username,
+      email,
+      password: hashedPassword
+    });
+
+    await newUser.save();
+    res.json({ success: true, message: 'Registration successful!' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 4. User Login Endpoint
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ success: false, error: 'Invalid email or password!' });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ success: false, error: 'Invalid email or password!' });
+    }
+
+    const token = jwt.sign(
+      { userId: user._id, email: user.email },
+      'MY_SUPER_SECRET_KEY',
+      { expiresIn: '2h' }
+    );
+
+    res.json({
+      success: true,
+      message: 'Login successful!',
+      token,
+      username: user.username
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// AWS S3 Client setup
+const s3 = new S3Client({ region: AWS_REGION });
+
+// Health check endpoint
+app.get("/", (req, res) => {
+  res.json({ message: "CloudBox backend is running with MongoDB & S3! 🚀" });
+});
+
+// Generate temporary presigned URL for S3 upload
 app.post("/api/upload-url", async (req, res) => {
   try {
     const { fileName, contentType } = req.body;
@@ -46,44 +118,23 @@ app.post("/api/upload-url", async (req, res) => {
       fileName.includes("\\") ||
       fileName.includes("..")
     ) {
-      return res.status(400).json({
-        error: "Invalid file name"
-      });
+      return res.status(400).json({ error: "Invalid file name" });
     }
 
-    // Store objects under a dedicated prefix.
-    const key =
-      "encrypted/" +
-      Date.now() +
-      "-" +
-      fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+    const key = "encrypted/" + Date.now() + "-" + fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
 
     const command = new PutObjectCommand({
       Bucket: BUCKET_NAME,
       Key: key,
-      ContentType:
-        typeof contentType === "string"
-          ? contentType
-          : "application/octet-stream"
+      ContentType: typeof contentType === "string" ? contentType : "application/octet-stream"
     });
 
-    const uploadUrl = await getSignedUrl(
-      s3,
-      command,
-      { expiresIn: 300 }
-    );
+    const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 300 });
 
-    res.json({
-      uploadUrl,
-      key,
-      expiresInSeconds: 300
-    });
+    res.json({ uploadUrl, key, expiresInSeconds: 300 });
   } catch (error) {
     console.error("Upload URL error:", error.name);
-
-    res.status(500).json({
-      error: "Could not create upload URL. Check AWS permissions and configuration."
-    });
+    res.status(500).json({ error: "Could not create upload URL. Check AWS permissions and configuration." });
   }
 });
 

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | CloudBox Enterprise</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="ambient-glow"></div>
+    
+    <div class="auth-container">
+        <div class="glass-card auth-box">
+            <div class="brand-header">
+                <span class="brand-icon">🛡️</span>
+                <h2>Create CloudBox Account</h2>
+                <p>Register your account with MongoDB security</p>
+            </div>
+
+            <form id="registerForm">
+                <div class="field-group">
+                    <label>Username</label>
+                    <input type="text" id="regUsername" placeholder="e.g. OnkarChavan" required />
+                </div>
+                <div class="field-group">
+                    <label>Email Address</label>
+                    <input type="email" id="regEmail" placeholder="onkar@example.com" required />
+                </div>
+                <div class="field-group">
+                    <label>Password</label>
+                    <input type="password" id="regPassword" placeholder="••••••••••••" required />
+                </div>
+                
+                <button type="submit" class="action-btn primary-glow">Register Account</button>
+            </form>
+
+            <div id="authStatus" class="auth-status"></div>
+
+            <div class="auth-footer">
+                <p>Already have an account? <a href="login.html">Login here</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const BACKEND_URL = 'http://localhost:3000';
+        const form = document.getElementById('registerForm');
+        const statusDiv = document.getElementById('authStatus');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('regUsername').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+
+            statusDiv.innerText = "Registering user...";
+            statusDiv.style.color = "#38bdf8";
+
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    statusDiv.innerText = "Registration Successful! Redirecting to Login...";
+                    statusDiv.style.color = "#10b981";
+                    setTimeout(() => { window.location.href = 'login.html'; }, 1500);
+                } else {
+                    throw new Error(data.error || "Registration failed");
+                }
+            } catch (err) {
+                statusDiv.innerText = err.message;
+                statusDiv.style.color = "#ef4444";
+            }
+        });
+    </script>
+</body>
+</html>
