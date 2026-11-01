@@ -10,7 +10,8 @@ const {
 } = require("@aws-sdk/s3-request-presigner");
 
 const app = express();
-const PORT = 3000;
+// const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // CloudBox S3 configuration
 const BUCKET_NAME = "omkarchavan321122";
@@ -86,6 +87,6 @@ app.post("/api/upload-url", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`CloudBox backend running at http://localhost:${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+    console.log(`CloudBox backend running on port ${PORT}`);
 });
