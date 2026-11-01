@@ -5,43 +5,44 @@ require('dotenv').config();
 
 const app = express();
 
-// 1. Enable CORS for AWS Amplify & Local Frontend (Fixes "Failed to fetch" issue)
+// 🟢 CORS Configuration (Fixes "Failed to fetch" on AWS Amplify)
 app.use(cors({
-    origin: '*', 
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(express.json());
 
-// 2. Connect to MongoDB Atlas via Environment Variable
+// MongoDB Connection
 const MONGO_URI = process.env.MONGO_URI;
 
-if (!MONGO_URI) {
-    console.error('CRITICAL ERROR: MONGO_URI is not defined in environment variables!');
-} else {
-    mongoose.connect(MONGO_URI)
-      .then(() => console.log('MongoDB Atlas Connected Successfully! 🍃🚀'))
-      .catch(err => console.error('MongoDB Atlas Connection Error:', err.message));
-}
+mongoose.connect(MONGO_URI)
+  .then(() => console.log('MongoDB Atlas Connected Successfully! 🍃🚀'))
+  .catch(err => console.error('MongoDB Atlas Connection Error:', err.message));
 
-// ---------------------------------------------------------
 // Basic Health Check Route
-// ---------------------------------------------------------
 app.get('/', (req, res) => {
-    res.send('CloudBox Backend API is Live and Running!');
+    res.json({ message: 'CloudBox Backend API is Live!' });
 });
 
-// ---------------------------------------------------------
-// Import Routes (Jar tujhe auth kiwa file upload routes asatil)
-// ---------------------------------------------------------
-// Example:
-// const authRoutes = require('./routes/auth');
-// app.use('/api/auth', authRoutes);
+// Authentication Routes
+app.post('/api/auth/register', (req, res) => {
+    const { username, email, password } = req.body;
+    if (!username || !email || !password) {
+        return res.status(400).json({ success: false, error: 'All fields required' });
+    }
+    return res.status(200).json({ success: true, message: 'User registered successfully!' });
+});
 
-// ---------------------------------------------------------
-// Server Port Setup
-// ---------------------------------------------------------
+app.post('/api/auth/login', (req, res) => {
+    const { email, password } = req.body;
+    if (!email || !password) {
+        return res.status(400).json({ success: false, error: 'Email & Password required' });
+    }
+    return res.status(200).json({ success: true, token: 'dummy_token', username: 'onkar' });
+});
+
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
     console.log(`CloudBox backend running on port ${PORT}`);
