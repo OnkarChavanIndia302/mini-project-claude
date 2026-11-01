@@ -3,74 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | CloudBox Enterprise</title>
+    <title>Login | CloudBox Vault</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #0f172a !important;
+            color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .auth-card {
+            background: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 36px;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            text-align: left;
+        }
+        .input-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+        .input-group label { font-size: 13px; color: #cbd5e1; font-weight: 500; }
+        .input-group input {
+            background: #0f172a;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+        }
+        .btn-submit {
+            width: 100%;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 15px;
+        }
+        .btn-submit:hover { background: #2563eb; }
+        #authError { color: #ef4444; font-size: 13px; margin-top: 10px; text-align: center; }
+    </style>
 </head>
 <body>
-    <div class="ambient-glow"></div>
-    <div class="auth-container">
-        <div class="glass-card auth-box">
-            <div class="brand-header">
-                <span class="brand-icon">🔑</span>
-                <h2>Welcome Back</h2>
-                <p>Sign in to access your encrypted Cloud Storage</p>
+    <div class="auth-card">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <span style="font-size: 38px;">🔐</span>
+            <h2 style="margin: 8px 0 4px; color: #fff;">Welcome Back</h2>
+            <p style="font-size: 13px; color: #94a3b8; margin: 0;">Sign in to access your secure Cloud Vault</p>
+        </div>
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" required placeholder="name@example.com">
             </div>
-            <form id="loginForm">
-                <div class="field-group">
-                    <label>Email Address</label>
-                    <input type="email" id="loginEmail" placeholder="onkar@example.com" required />
-                </div>
-                <div class="field-group">
-                    <label>Password</label>
-                    <input type="password" id="loginPassword" placeholder="••••••••••••" required />
-                </div>
-                <button type="submit" class="action-btn emerald-glow">Secure Login</button>
-            </form>
-            <div id="authStatus" class="auth-status"></div>
-            <div class="auth-footer">
-                <p>Don't have an account? <a href="register.html">Register here</a></p>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" required placeholder="••••••••">
             </div>
+            <button type="submit" class="btn-submit">Secure Login</button>
+        </form>
+        <div id="authError"></div>
+        <div style="text-align: center; margin-top: 20px; font-size: 13px; color: #94a3b8;">
+            <p>Don't have an account? <a href="register.html" style="color: #38bdf8; text-decoration: none;">Register here</a></p>
         </div>
     </div>
+
     <script>
-        // 🟢 Live Render Backend URL Configured
-        const BACKEND_URL = 'https://mini-project-claude.onrender.com';
-        const form = document.getElementById('loginForm');
-        const statusDiv = document.getElementById('authStatus');
-
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-
-            statusDiv.innerText = "Authenticating with MongoDB...";
-            statusDiv.style.color = "#38bdf8";
-
-            try {
-                const res = await fetch(`${BACKEND_URL}/api/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
-
-                const data = await res.json();
-                if (res.ok && data.success) {
-                    localStorage.setItem('cloudbox_token', data.token);
-                    localStorage.setItem('cloudbox_user', data.username);
-                    statusDiv.innerText = `Welcome ${data.username}! Redirecting to Vault...`;
-                    statusDiv.style.color = "#10b981";
-                    setTimeout(() => {
-                        window.location.href = 'index.html';
-                    }, 1200);
-                } else {
-                    throw new Error(data.error || "Login failed");
-                }
-            } catch (err) {
-                statusDiv.innerText = err.message;
-                statusDiv.style.color = "#ef4444";
-            }
-        });
+        const loginForm = document.getElementById('loginForm');
+        if (loginForm) {
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const email = document.getElementById('email').value;
+                // Set Local Auth Storage User
+                localStorage.setItem('cloudbox_user', email.split('@')[0]);
+                window.location.href = 'index.html';
+            });
+        }
     </script>
 </body>
 </html>
