@@ -11,7 +11,7 @@ const BACKEND_URL = 'https://mini-project-claude.onrender.com';
 // -------------------------------------------------------------
 const currentUser = localStorage.getItem('cloudbox_user');
 
-// Check if user is logged in (Redirect if unauthorized)
+// Redirect to login if user is not authenticated
 if (!currentUser && !window.location.pathname.includes('login.html') && !window.location.pathname.includes('register.html')) {
     window.location.href = 'login.html';
 }
@@ -20,12 +20,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const userGreeting = document.getElementById('userGreeting');
     const logoutBtn = document.getElementById('logoutBtn');
 
-    // Display User Greeting in Top Header
+    // Display Logged In User
     if (userGreeting && currentUser) {
         userGreeting.innerText = `● Logged in as: ${currentUser}`;
     }
 
-    // Attach Click Handler to Logout Button
+    // Logout Click Listener
     if (logoutBtn) {
         logoutBtn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -57,7 +57,7 @@ function setStatus(message, type = 'info') {
 }
 
 // -------------------------------------------------------------
-// 1. FILE SELECTION & DROPZONE LOGIC
+// 1. FILE SELECTION & HANDLER
 // -------------------------------------------------------------
 if (fileInput) {
     fileInput.addEventListener('change', (e) => {
@@ -89,14 +89,14 @@ function handleFile(file) {
 
     if (segmentBtn) segmentBtn.disabled = false;
     if (encryptBtn) encryptBtn.disabled = true;
-    if (uploadBtn) uploadBtn.disabled = false; // Raw upload sathi button active thevla
+    if (uploadBtn) uploadBtn.disabled = false; // Raw upload & normal upload ready
     if (decryptBtn) decryptBtn.disabled = true;
 
-    setStatus(`File selected: ${file.name} (${(file.size / 1024).toFixed(2)} KB). Ready to segment, encrypt, or raw upload!`, 'success');
+    setStatus(`File selected: ${file.name} (${(file.size / 1024).toFixed(2)} KB). Ready to process!`, 'success');
 }
 
 // -------------------------------------------------------------
-// 2. FILE SEGMENTATION LOGIC
+// 2. SEGMENTATION PIPELINE
 // -------------------------------------------------------------
 if (segmentBtn) {
     segmentBtn.addEventListener('click', async () => {
@@ -122,7 +122,7 @@ if (segmentBtn) {
 }
 
 // -------------------------------------------------------------
-// 3. AES-256-GCM ENCRYPTION LOGIC
+// 3. ENCRYPTION PIPELINE (AES-256-GCM)
 // -------------------------------------------------------------
 if (encryptBtn) {
     encryptBtn.addEventListener('click', async () => {
@@ -162,7 +162,7 @@ if (encryptBtn) {
 }
 
 // -------------------------------------------------------------
-// 4. UPLOAD PIPELINE (AWS S3 & DIRECT MONGODB RAW OPTION)
+// 4. UPLOAD PIPELINE (AWS S3 OR RAW MONGODB ATLAS)
 // -------------------------------------------------------------
 if (uploadBtn) {
     uploadBtn.addEventListener('click', async () => {
@@ -171,10 +171,10 @@ if (uploadBtn) {
             return;
         }
 
-        // OPTION A: Store Raw / Unencrypted File directly to MongoDB Atlas
+        // --- OPTION 1: RAW UNENCRYPTED SAVE TO MONGODB ---
         if (storePlainCheckbox && storePlainCheckbox.checked) {
             uploadBtn.disabled = true;
-            setStatus('Reading file and uploading directly to MongoDB Atlas without encryption...');
+            setStatus('Uploading raw file directly into MongoDB Atlas...');
             try {
                 const reader = new FileReader();
                 reader.readAsDataURL(selectedFile);
@@ -192,7 +192,7 @@ if (uploadBtn) {
                     });
                     const data = await response.json();
                     if (response.ok && data.success) {
-                        setStatus(`Saved raw file successfully into MongoDB Atlas! 🍃`, 'success');
+                        setStatus(`Saved raw file successfully in MongoDB Atlas! 🍃`, 'success');
                     } else {
                         throw new Error(data.error || 'Failed to save to MongoDB');
                     }
@@ -205,14 +205,14 @@ if (uploadBtn) {
             return;
         }
 
-        // OPTION B: Normal Encrypted AWS S3 Upload Pipeline
+        // --- OPTION 2: ENCRYPTED AWS S3 UPLOAD ---
         if (!encryptedBlocks.length) {
-            setStatus('No encrypted payload found. Please Segment & Encrypt first, or tick MongoDB Raw Save.', 'error');
+            setStatus('Please segment & encrypt file first, OR tick "Store raw file" option.', 'error');
             return;
         }
 
         uploadBtn.disabled = true;
-        setStatus('Requesting AWS S3 Presigned Upload URL from Backend Server...');
+        setStatus('Requesting AWS S3 Presigned Upload URL...');
         try {
             const response = await fetch(`${BACKEND_URL}/api/upload-url`, {
                 method: 'POST',
@@ -222,14 +222,14 @@ if (uploadBtn) {
 
             const contentType = response.headers.get("content-type");
             if (!contentType || !contentType.includes("application/json")) {
-                throw new Error("Backend server error. Check Render environment keys.");
+                throw new Error("Backend server error. Check Render logs.");
             }
 
             const data = await response.json();
             if (!response.ok || !data.uploadUrl) throw new Error(data.error || 'Failed to get upload URL');
 
             const payload = { metadata: fileMetadata, blocks: encryptedBlocks };
-            setStatus('Uploading encrypted package directly to AWS S3...');
+            setStatus('Uploading encrypted file payload to AWS S3...');
             
             const s3Response = await fetch(data.uploadUrl, {
                 method: 'PUT',
@@ -238,12 +238,12 @@ if (uploadBtn) {
             });
 
             if (s3Response.ok) {
-                setStatus(`Uploaded to AWS S3 Bucket! Object Key: ${data.key}`, 'success');
+                setStatus(`Uploaded to AWS S3! Key: ${data.key}`, 'success');
             } else {
                 throw new Error('Direct S3 upload failed');
             }
         } catch (err) {
-            setStatus(`Cloud Upload Error: ${err.message}`, 'error');
+            setStatus(`Upload Error: ${err.message}`, 'error');
         } finally {
             uploadBtn.disabled = false;
         }
@@ -256,11 +256,11 @@ if (uploadBtn) {
 if (decryptBtn) {
     decryptBtn.addEventListener('click', async () => {
         if (!aesKey || !encryptedBlocks.length) {
-            setStatus('No key or blocks found for decryption.', 'error');
+            setStatus('No encryption key or encrypted blocks found.', 'error');
             return;
         }
         decryptBtn.disabled = true;
-        setStatus('Decrypting blocks and reconstructing file...');
+        setStatus('Decrypting blocks and restoring original file...');
         try {
             const decryptedParts = [];
             for (const block of encryptedBlocks) {
@@ -279,7 +279,7 @@ if (decryptBtn) {
             document.body.appendChild(link);
             link.click();
             link.remove();
-            setStatus(`Decryption successful! Original file restored: restored_${fileMetadata.name}`, 'success');
+            setStatus(`Success! Restored file downloaded: restored_${fileMetadata.name}`, 'success');
         } catch (err) {
             setStatus(`Decryption Error: ${err.message}`, 'error');
         } finally {
