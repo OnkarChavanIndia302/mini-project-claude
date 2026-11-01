@@ -1,71 +1,209 @@
-/* Auth Centered Glassmorphism Styling */
-.auth-container {
+/* -------------------------------------------------------------
+   CLOUDBOX VAULT - MODERN DARK GLASSMORPHISM STYLING
+------------------------------------------------------------- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+body {
+    background-color: #0f172a;
+    color: #f8fafc;
+    min-height: 100vh;
     display: flex;
     justify-content: center;
-    align-items: center;
-    min-height: 85vh;
+    padding: 24px;
 }
 
-.auth-card {
-    background: #1e293b;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
-    padding: 36px;
+.app-container {
     width: 100%;
-    max-width: 400px;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
-}
-
-.auth-header {
-    text-align: center;
-    margin-bottom: 24px;
-}
-
-.auth-icon { font-size: 40px; }
-.auth-header h2 { margin: 8px 0 4px; font-weight: 700; color: #f8fafc; }
-.auth-header p { font-size: 14px; color: #94a3b8; margin: 0; }
-
-.input-group {
+    max-width: 1000px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    margin-bottom: 16px;
+    gap: 24px;
 }
 
-.input-group label {
+/* Header Navbar */
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 16px 24px;
+    border-radius: 12px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 20px;
+}
+
+.logo-text strong {
+    color: #38bdf8;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.status-badge {
+    color: #10b981;
     font-size: 13px;
     font-weight: 500;
-    color: #cbd5e1;
 }
 
-.input-group input {
-    background: #0f172a;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 8px;
-    padding: 10px 14px;
+.btn-logout {
+    background: #ef4444;
     color: #fff;
-    font-size: 14px;
-    outline: none;
-}
-
-.input-group input:focus {
-    border-color: #06b6d4;
-}
-
-.btn-block {
-    width: 100%;
-    justify-content: center;
-    margin-top: 8px;
-}
-
-.auth-footer {
-    text-align: center;
-    margin-top: 20px;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
     font-size: 13px;
+    transition: 0.2s;
+}
+
+.btn-logout:hover {
+    background: #dc2626;
+}
+
+/* Main Layout Grid */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.card {
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 24px;
+}
+
+.card h3 {
+    font-size: 16px;
+    margin-bottom: 16px;
+    color: #38bdf8;
+}
+
+/* File Selection Dropzone */
+.drop-zone {
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 30px;
+    text-align: center;
+    background: #0f172a;
+    transition: 0.2s;
+    margin-bottom: 20px;
+}
+
+.drop-title {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.drop-sub {
+    font-size: 12px;
     color: #94a3b8;
 }
 
-.auth-footer a {
+/* Select Box */
+select {
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    outline: none;
+    width: 100%;
+}
+
+/* Pipeline Buttons */
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.btn-primary { background: #3b82f6; color: white; }
+.btn-warning { background: #f59e0b; color: white; }
+.btn-success { background: #10b981; color: white; }
+.btn-info { background: #06b6d4; color: white; }
+
+.btn-primary:not(:disabled):hover { background: #2563eb; }
+.btn-warning:not(:disabled):hover { background: #d97706; }
+.btn-success:not(:disabled):hover { background: #059669; }
+.btn-info:not(:disabled):hover { background: #0891b2; }
+
+/* Audit Terminal Footer */
+.audit-terminal {
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.terminal-header {
+    background: #1e293b;
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.red { background: #ef4444; }
+.yellow { background: #f59e0b; }
+.green { background: #10b981; }
+
+.terminal-title {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-left: 8px;
+    font-family: monospace;
+}
+
+.terminal-body {
+    padding: 16px;
+    font-family: monospace;
+    font-size: 13px;
     color: #38bdf8;
-    text-decoration: none;
+    min-height: 60px;
+}
+
+@media (max-width: 768px) {
+    .dashboard-grid { grid-template-columns: 1fr; }
 }
