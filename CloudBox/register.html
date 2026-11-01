@@ -9,7 +9,6 @@
 </head>
 <body>
     <div class="ambient-glow"></div>
-    
     <div class="auth-container">
         <div class="glass-card auth-box">
             <div class="brand-header">
@@ -17,7 +16,6 @@
                 <h2>Create CloudBox Account</h2>
                 <p>Register your account with MongoDB security</p>
             </div>
-
             <form id="registerForm">
                 <div class="field-group">
                     <label>Username</label>
@@ -31,20 +29,18 @@
                     <label>Password</label>
                     <input type="password" id="regPassword" placeholder="••••••••••••" required />
                 </div>
-                
                 <button type="submit" class="action-btn primary-glow">Register Account</button>
             </form>
-
             <div id="authStatus" class="auth-status"></div>
-
             <div class="auth-footer">
                 <p>Already have an account? <a href="login.html">Login here</a></p>
             </div>
         </div>
     </div>
-
     <script>
-        const BACKEND_URL = 'http://localhost:3000';
+        // 🟢 Live Render Backend URL Configured
+        const BACKEND_URL = 'https://mini-project-claude.onrender.com';
+        
         const form = document.getElementById('registerForm');
         const statusDiv = document.getElementById('authStatus');
 
@@ -54,7 +50,7 @@
             const email = document.getElementById('regEmail').value;
             const password = document.getElementById('regPassword').value;
 
-            statusDiv.innerText = "Registering user...";
+            statusDiv.innerText = "Registering user to MongoDB...";
             statusDiv.style.color = "#38bdf8";
 
             try {
@@ -63,12 +59,14 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, email, password })
                 });
-                const data = await res.json();
 
+                const data = await res.json();
                 if (res.ok && data.success) {
                     statusDiv.innerText = "Registration Successful! Redirecting to Login...";
                     statusDiv.style.color = "#10b981";
-                    setTimeout(() => { window.location.href = 'login.html'; }, 1500);
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 1500);
                 } else {
                     throw new Error(data.error || "Registration failed");
                 }
