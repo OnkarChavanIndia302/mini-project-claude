@@ -4,7 +4,7 @@ let fileBlocks = [];
 let encryptedBlocks = [];
 let aesKey = null;
 
-const BACKEND_URL = "https://mini-project-claude.onrender.com";
+const BACKEND_URL = 'https://mini-project-claude.onrender.com';
 
 // DOM Elements
 const statusDiv = document.getElementById('status');
@@ -16,10 +16,6 @@ const encryptBtn = document.getElementById('encryptBtn');
 const uploadBtn = document.getElementById('uploadBtn');
 const decryptBtn = document.getElementById('decryptBtn');
 
-// Auth DOM Elements
-const registerBtn = document.getElementById('registerBtn');
-const loginBtn = document.getElementById('loginBtn');
-
 function setStatus(message, type = 'info') {
     if (!statusDiv) return;
     const time = new Date().toLocaleTimeString();
@@ -30,72 +26,7 @@ function setStatus(message, type = 'info') {
 }
 
 // -------------------------------------------------------------
-// 1. MONGODB AUTHENTICATION LOGIC (Register & Login)
-// -------------------------------------------------------------
-if (registerBtn) {
-    registerBtn.addEventListener('click', async () => {
-        const username = document.getElementById('authUsername').value.trim();
-        const email = document.getElementById('authEmail').value.trim();
-        const password = document.getElementById('authPassword').value.trim();
-
-        if (!username || !email || !password) {
-            setStatus('Please fill in all registration fields.', 'error');
-            return;
-        }
-
-        try {
-            setStatus('Registering user to MongoDB database...');
-            const response = await fetch(`${BACKEND_URL}/api/auth/register`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, email, password })
-            });
-
-            const data = await response.json();
-            if (response.ok && data.success) {
-                setStatus('Registration successful! User account created in MongoDB 🍃', 'success');
-            } else {
-                throw new Error(data.error || 'Registration failed');
-            }
-        } catch (err) {
-            setStatus(`Auth Error: ${err.message}`, 'error');
-        }
-    });
-}
-
-if (loginBtn) {
-    loginBtn.addEventListener('click', async () => {
-        const email = document.getElementById('authEmail').value.trim();
-        const password = document.getElementById('authPassword').value.trim();
-
-        if (!email || !password) {
-            setStatus('Please enter email and password to log in.', 'error');
-            return;
-        }
-
-        try {
-            setStatus('Authenticating credentials against MongoDB...');
-            const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
-            });
-
-            const data = await response.json();
-            if (response.ok && data.success) {
-                localStorage.setItem('cloudbox_token', data.token);
-                setStatus(`Welcome back, ${data.username}! Session active. 🍃`, 'success');
-            } else {
-                throw new Error(data.error || 'Login failed');
-            }
-        } catch (err) {
-            setStatus(`Auth Error: ${err.message}`, 'error');
-        }
-    });
-}
-
-// -------------------------------------------------------------
-// 2. FILE PROCESSING & CRYPTOGRAPHY LOGIC
+// 1. FILE PROCESSING LOGIC
 // -------------------------------------------------------------
 if (fileInput) {
     fileInput.addEventListener('change', (e) => {
@@ -124,37 +55,36 @@ function handleFile(file) {
     fileBlocks = [];
     encryptedBlocks = [];
     aesKey = null;
-    
-    // 🟢 Segment button enable kara
+
     if (segmentBtn) segmentBtn.disabled = false;
-    
     if (encryptBtn) encryptBtn.disabled = true;
     if (uploadBtn) uploadBtn.disabled = true;
     if (decryptBtn) decryptBtn.disabled = true;
+
     setStatus(`File selected: ${file.name} (${(file.size / 1024).toFixed(2)} KB). Click 'Segment File'.`, 'info');
 }
 
+// -------------------------------------------------------------
+// 2. SEGMENTATION & ENCRYPTION
+// -------------------------------------------------------------
 if (segmentBtn) {
     segmentBtn.addEventListener('click', async () => {
         if (!selectedFile) {
             setStatus('Please choose a file first.', 'error');
             return;
         }
-
         const chunkSizeKB = parseInt(chunkSizeSelect ? chunkSizeSelect.value : 256, 10);
         const chunkSize = chunkSizeKB * 1024;
         fileBlocks = [];
-
         setStatus(`Segmenting file into ${chunkSizeKB} KB blocks...`);
+
         const arrayBuffer = await selectedFile.arrayBuffer();
         let offset = 0, blockIndex = 0;
-
         while (offset < arrayBuffer.byteLength) {
             fileBlocks.push({ index: blockIndex, data: arrayBuffer.slice(offset, offset + chunkSize) });
             offset += chunkSize;
             blockIndex++;
         }
-
         setStatus(`Segmentation complete! ${fileBlocks.length} blocks generated. Ready to Encrypt.`, 'success');
         if (encryptBtn) encryptBtn.disabled = false;
     });
@@ -166,18 +96,28 @@ if (encryptBtn) {
             setStatus('No blocks to encrypt. Please segment file first.', 'error');
             return;
         }
-
         setStatus('Generating AES-256 key & encrypting blocks...');
         try {
-            aesKey = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);
-            encryptedBlocks = [];
+            aesKey = await crypto.subtle.generateKey(
+                { name: 'AES-GCM', length: 256 },
+                true,
+                ['encrypt', 'decrypt']
+            );
 
+            encryptedBlocks = [];
             for (const block of fileBlocks) {
                 const iv = crypto.getRandomValues(new Uint8Array(12));
-                const encryptedBuffer = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, aesKey, block.data);
-                encryptedBlocks.push({ index: block.index, iv: Array.from(iv), data: Array.from(new Uint8Array(encryptedBuffer)) });
+                const encryptedBuffer = await crypto.subtle.encrypt(
+                    { name: 'AES-GCM', iv },
+                    aesKey,
+                    block.data
+                );
+                encryptedBlocks.push({
+                    index: block.index,
+                    iv: Array.from(iv),
+                    data: Array.from(new Uint8Array(encryptedBuffer))
+                });
             }
-
             setStatus(`All ${encryptedBlocks.length} blocks encrypted with AES-256-GCM! Ready for AWS S3 Upload.`, 'success');
             if (uploadBtn) uploadBtn.disabled = false;
             if (decryptBtn) decryptBtn.disabled = false;
@@ -188,64 +128,64 @@ if (encryptBtn) {
 }
 
 // -------------------------------------------------------------
-    // 3. AWS S3 UPLOAD PIPELINE
-    // -------------------------------------------------------------
-    if (uploadBtn) {
-        uploadBtn.addEventListener('click', async () => {
-            if (!encryptedBlocks.length || !fileMetadata) {
-                setStatus('No encrypted payload found.', 'error');
-                return;
+// 3. AWS S3 UPLOAD PIPELINE
+// -------------------------------------------------------------
+if (uploadBtn) {
+    uploadBtn.addEventListener('click', async () => {
+        if (!encryptedBlocks.length || !fileMetadata) {
+            setStatus('No encrypted payload found.', 'error');
+            return;
+        }
+        uploadBtn.disabled = true;
+        setStatus('Requesting AWS S3 Upload URL from Backend Server...');
+        try {
+            const response = await fetch(`${BACKEND_URL}/api/upload-url`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fileName: fileMetadata.name, contentType: 'application/json' })
+            });
+
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error("Backend server error. Check Render environment keys.");
             }
-            uploadBtn.disabled = true;
-            setStatus('Requesting AWS S3 Upload URL from Backend Server...');
-            try {
-                const response = await fetch(`${BACKEND_URL}/api/upload-url`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ fileName: fileMetadata.name, contentType: 'application/json' })
-                });
 
-                // Check if response is valid JSON
-                const contentType = response.headers.get("content-type");
-                if (!contentType || !contentType.includes("application/json")) {
-                    throw new Error("Backend server returned HTML instead of JSON. Check Render logs / AWS S3 keys.");
-                }
+            const data = await response.json();
+            if (!response.ok || !data.uploadUrl) throw new Error(data.error || 'Failed to get upload URL');
 
-                const data = await response.json();
-                if (!response.ok || !data.uploadUrl) throw new Error(data.error || 'Failed to get upload URL');
+            const payload = { metadata: fileMetadata, blocks: encryptedBlocks };
+            setStatus('Uploading encrypted package directly to AWS S3...');
+            
+            const s3Response = await fetch(data.uploadUrl, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
 
-                const payload = { metadata: fileMetadata, blocks: encryptedBlocks };
-                setStatus('Uploading encrypted package directly to AWS S3...');
-                
-                const s3Response = await fetch(data.uploadUrl, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (s3Response.ok) {
-                    setStatus(`Uploaded to AWS S3 Bucket! Object Key: ${data.key}`, 'success');
-                } else {
-                    throw new Error('Direct S3 upload failed');
-                }
-            } catch (err) {
-                setStatus(`Cloud Upload Error: ${err.message}`, 'error');
-            } finally {
-                uploadBtn.disabled = false;
+            if (s3Response.ok) {
+                setStatus(`Uploaded to AWS S3 Bucket! Object Key: ${data.key}`, 'success');
+            } else {
+                throw new Error('Direct S3 upload failed');
             }
-        });
-    }
+        } catch (err) {
+            setStatus(`Cloud Upload Error: ${err.message}`, 'error');
+        } finally {
+            uploadBtn.disabled = false;
+        }
+    });
+}
 
+// -------------------------------------------------------------
+// 4. DECRYPTION PIPELINE
+// -------------------------------------------------------------
 if (decryptBtn) {
     decryptBtn.addEventListener('click', async () => {
         if (!aesKey || !encryptedBlocks.length) {
             setStatus('No key or blocks found for decryption.', 'error');
             return;
         }
-
         decryptBtn.disabled = true;
         setStatus('Decrypting blocks and reconstructing file...');
-
         try {
             const decryptedParts = [];
             for (const block of encryptedBlocks) {
@@ -256,7 +196,6 @@ if (decryptBtn) {
                 );
                 decryptedParts.push(decryptedBuffer);
             }
-
             const restoredBlob = new Blob(decryptedParts, { type: fileMetadata.type || 'application/octet-stream' });
             const url = URL.createObjectURL(restoredBlob);
             const link = document.createElement('a');
@@ -265,7 +204,6 @@ if (decryptBtn) {
             document.body.appendChild(link);
             link.click();
             link.remove();
-
             setStatus(`Decryption successful! Original file restored: restored_${fileMetadata.name}`, 'success');
         } catch (err) {
             setStatus(`Decryption Error: ${err.message}`, 'error');
