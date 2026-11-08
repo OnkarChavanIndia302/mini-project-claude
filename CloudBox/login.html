@@ -16,156 +16,28 @@
             --blue: #4385ff;
             --cyan: #26d9e8;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
-
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .auth-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 40px;
-            width: 100%;
-            max-width: 420px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
-        }
-
-        .brand-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .brand-icon {
-            width: 54px;
-            height: 54px;
-            border-radius: 16px;
-            background: linear-gradient(135deg, #397cff, #7548e8);
-            display: inline-grid;
-            place-items: center;
-            font-size: 24px;
-            color: #fff;
-            margin-bottom: 14px;
-            box-shadow: 0 5px 20px rgba(67, 133, 255, 0.35);
-        }
-
-        .brand-header h2 {
-            font-size: 22px;
-            font-weight: 800;
-            margin-bottom: 6px;
-        }
-
-        .brand-header p {
-            font-size: 13px;
-            color: var(--muted);
-        }
-
-        .input-group {
-            margin-bottom: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .input-group label {
-            font-size: 12px;
-            font-weight: 600;
-            color: #cbd5e1;
-        }
-
-        .input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        .input-wrapper i {
-            position: absolute;
-            left: 14px;
-            color: var(--muted);
-            font-size: 14px;
-        }
-
-        .input-wrapper input {
-            width: 100%;
-            background: #080f1c;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 12px 14px 12px 40px;
-            color: #fff;
-            font-size: 14px;
-            outline: none;
-            transition: 0.25s;
-        }
-
-        .input-wrapper input:focus {
-            border-color: var(--blue);
-            box-shadow: 0 0 0 3px rgba(67, 133, 255, 0.15);
-        }
-
-        .btn-submit {
-            width: 100%;
-            background: linear-gradient(135deg, #397cff, #2563eb);
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 10px;
-            font-weight: 700;
-            font-size: 14px;
-            cursor: pointer;
-            transition: 0.25s;
-            margin-top: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-submit:hover {
-            filter: brightness(1.1);
-            transform: translateY(-1px);
-        }
-
-        #authError {
-            font-size: 13px;
-            margin-top: 14px;
-            text-align: center;
-            min-height: 20px;
-        }
-
-        .auth-footer {
-            text-align: center;
-            margin-top: 24px;
-            font-size: 13px;
-            color: var(--muted);
-        }
-
-        .auth-footer a {
-            color: var(--cyan);
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .auth-footer a:hover {
-            text-decoration: underline;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg); color: var(--text); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .auth-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 40px; width: 100%; max-width: 420px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4); }
+        .brand-header { text-align: center; margin-bottom: 30px; }
+        .brand-icon { width: 54px; height: 54px; border-radius: 16px; background: linear-gradient(135deg, #397cff, #7548e8); display: inline-grid; place-items: center; font-size: 24px; color: #fff; margin-bottom: 14px; box-shadow: 0 5px 20px rgba(67, 133, 255, 0.35); }
+        .brand-header h2 { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+        .brand-header p { font-size: 13px; color: var(--muted); }
+        .input-group { margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; }
+        .input-group label { font-size: 12px; font-weight: 600; color: #cbd5e1; }
+        .input-wrapper { position: relative; display: flex; align-items: center; }
+        .input-wrapper i { position: absolute; left: 14px; color: var(--muted); font-size: 14px; }
+        .input-wrapper input { width: 100%; background: #080f1c; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px 12px 40px; color: #fff; font-size: 14px; outline: none; transition: 0.25s; }
+        .input-wrapper input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(67, 133, 255, 0.15); }
+        .btn-submit { width: 100%; background: linear-gradient(135deg, #397cff, #2563eb); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.25s; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-submit:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        #authError { font-size: 13px; margin-top: 14px; text-align: center; min-height: 20px; }
+        .auth-footer { text-align: center; margin-top: 24px; font-size: 13px; color: var(--muted); }
+        .auth-footer a { color: var(--cyan); text-decoration: none; font-weight: 600; }
+        .auth-footer a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
-
     <div class="auth-card">
         <div class="brand-header">
             <div class="brand-icon">
@@ -205,47 +77,7 @@
         </div>
     </div>
 
-    <script>
-        const BACKEND_URL = 'https://mini-project-claude.onrender.com';
-        const loginForm = document.getElementById('loginForm');
-        const authError = document.getElementById('authError');
-
-        if (loginForm) {
-            loginForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
-
-                if (authError) {
-                    authError.innerText = 'Authenticating...';
-                    authError.style.color = '#38bdf8';
-                }
-
-                try {
-                    const response = await fetch(`${BACKEND_URL}/api/login`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email, password })
-                    });
-                    const data = await response.json();
-
-                    if (response.ok && (data.success || data.token)) {
-                        const userName = data.username || email.split('@')[0];
-                        localStorage.setItem('cloudbox_user', userName);
-                        if (data.token) localStorage.setItem('cloudbox_token', data.token);
-                        window.location.href = 'index.html';
-                    } else {
-                        const userName = email.split('@')[0];
-                        localStorage.setItem('cloudbox_user', userName);
-                        window.location.href = 'index.html';
-                    }
-                } catch (err) {
-                    const userName = email.split('@')[0];
-                    localStorage.setItem('cloudbox_user', userName);
-                    window.location.href = 'index.html';
-                }
-            });
-        }
-    </script>
+    <!-- INHERIT LOGIC FROM script.js TO AVOID DUPLICATE CODE -->
+    <script src="script.js"></script>
 </body>
 </html>
