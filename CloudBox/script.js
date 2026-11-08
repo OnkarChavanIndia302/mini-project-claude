@@ -27,34 +27,37 @@ function setStatus(message, type = 'info') {
     }
 }
 
-// Function to render uploaded file names in the "Stored Files" section UI
+// -------------------------------------------------------------
+// STORED FILES MANAGER (UI & LOCALSTORAGE INTEGRATION)
+// -------------------------------------------------------------
 function addStoredFileToList(fileName) {
+    if (!fileName) return;
+
     const container = document.getElementById('storedFilesContainer');
     if (!container) return;
 
-    // Remove placeholder text if present
+    // Remove placeholder empty text if present
     const noFilesMsg = container.querySelector('.no-files-text');
     if (noFilesMsg) {
         noFilesMsg.remove();
     }
 
-    // Check if item is already present in UI
-    const existingItems = Array.from(container.querySelectorAll('.file-item-info span')).map(el => el.textContent);
-    if (existingItems.includes(fileName)) return;
+    // Check if filename already exists in the list UI
+    const existingNames = Array.from(container.querySelectorAll('.file-name-text')).map(el => el.textContent.trim());
+    if (!existingNames.includes(fileName)) {
+        const row = document.createElement('div');
+        row.className = 'file-item-row';
+        row.innerHTML = `
+            <div class="file-item-info">
+                <i class="fa-solid fa-file-shield" style="color: #38bdf8; margin-right: 8px;"></i>
+                <span class="file-name-text" style="font-size: 13px; font-weight: 600; color: #f8fafc;">${fileName}</span>
+            </div>
+            <span style="font-size: 11px; color: #10b981; font-weight: 700; background: rgba(16, 185, 129, 0.1); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.2);">SECURED</span>
+        `;
+        container.appendChild(row);
+    }
 
-    // Append new file row showing filename
-    const row = document.createElement('div');
-    row.className = 'file-item-row';
-    row.innerHTML = `
-        <div class="file-item-info">
-            <i class="fa-solid fa-file-shield"></i>
-            <span>${fileName}</span>
-        </div>
-        <span style="font-size: 11px; color: var(--accent-emerald); font-weight: 600;">SECURED</span>
-    `;
-    container.appendChild(row);
-
-    // Save to localStorage so files stay listed across refreshes
+    // Persist list to localStorage
     let savedFiles = JSON.parse(localStorage.getItem('cloudbox_files') || '[]');
     if (!savedFiles.includes(fileName)) {
         savedFiles.push(fileName);
@@ -62,8 +65,15 @@ function addStoredFileToList(fileName) {
     }
 }
 
+function loadSavedFiles() {
+    const savedFiles = JSON.parse(localStorage.getItem('cloudbox_files') || '[]');
+    if (savedFiles.length > 0) {
+        savedFiles.forEach(fileName => addStoredFileToList(fileName));
+    }
+}
+
 // -------------------------------------------------------------
-// 1. SESSION GUARD & STORED FILES RESTORE ON LOAD
+// 1. SESSION GUARD & INITIALIZATION
 // -------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem('cloudbox_token');
@@ -108,12 +118,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Load saved files from localStorage into Stored Files list
-    const savedFiles = JSON.parse(localStorage.getItem('cloudbox_files') || '[]');
-    if (savedFiles.length > 0) {
-        savedFiles.forEach(name => addStoredFileToList(name));
-    }
+    // Load any previously saved files into UI panel
+    loadSavedFiles();
 
+    // Initialize drag-and-drop & file input handlers
     initFileUploadHandlers();
 });
 
@@ -193,11 +201,11 @@ function handleFileSelection(file) {
     selectedFile = file;
     const encryptBtn = document.getElementById('encryptBtn');
     if (encryptBtn) encryptBtn.disabled = false;
-    setStatus(`[FILE LOADED] ${file.name} (${(file.size / 1024).toFixed(2)} KB). Click "Encrypt Buffer (AES-256)" to proceed.`, 'success');
+    setStatus(`[FILE LOADED] ${file.name} (${(file.size / 1024).toFixed(2)} KB). Click "1. Encrypt Buffer (AES-256)" to proceed.`, 'success');
 }
 
 // -------------------------------------------------------------
-// 4. CLIENT-SIDE ENCRYPTION
+// 4. CLIENT-SIDE ENCRYPTION PIPELINE
 // -------------------------------------------------------------
 const encryptBtn = document.getElementById('encryptBtn');
 if (encryptBtn) {
@@ -252,7 +260,7 @@ if (encryptBtn) {
 }
 
 // -------------------------------------------------------------
-// 5. AWS S3 PRESIGNED UPLOAD & STORED FILE RECORDING
+// 5. AWS S3 PRESIGNED UPLOAD & FILE DISPLAY PIPELINE
 // -------------------------------------------------------------
 const uploadBtn = document.getElementById('uploadBtn');
 if (uploadBtn) {
@@ -262,6 +270,7 @@ if (uploadBtn) {
             return;
         }
 
+        const uploadedName = fileMetadata.name; // Preserve file name in closure
         uploadBtn.disabled = true;
         setStatus('[CONNECTING] Requesting presigned URL from Render backend...', 'info');
 
@@ -270,7 +279,7 @@ if (uploadBtn) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    fileName: fileMetadata.name,
+                    fileName: uploadedName,
                     contentType: 'application/json'
                 })
             });
@@ -292,8 +301,8 @@ if (uploadBtn) {
             if (s3Response.ok) {
                 setStatus(`[SUCCESS] Object stored safely in AWS S3! Key: ${data.key}`, 'success');
                 
-                // Add uploaded filename to Stored Files UI panel instantly
-                addStoredFileToList(fileMetadata.name);
+                // Immediately update stored files UI with the file name
+                addStoredFileToList(uploadedName);
             } else {
                 throw new Error('S3 PUT upload request failed.');
             }
