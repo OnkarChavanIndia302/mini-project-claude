@@ -1,143 +1,213 @@
-let selectedFile = null;
-let fileMetadata = null;
-let fileBlocks = [];
-let encryptedBlocks = [];
-let aesKey = null;
+// =============================================================
+// CloudBox - Modern Secure File Management
+// Deployed Live Backend Configuration & Client Storage
+// =============================================================
 
 const BACKEND_URL = 'https://mini-project-claude.onrender.com';
 
-// -------------------------------------------------------------
-// 0. SAFE AUTHENTICATION CHECK & ROUTING PIPELINE
-// -------------------------------------------------------------
-const currentUser = localStorage.getItem('cloudbox_user');
-const currentPath = window.location.pathname.toLowerCase();
+// Global variables for Web Crypto API & S3 payload
+let aesKey = null;
+let encryptedBlocks = [];
+let fileMetadata = null;
+let selectedFile = null;
 
-// Safe Check for Login/Register Pages & Root URLs
-const isAuthPage = currentPath.endsWith('login.html') || currentPath.endsWith('register.html');
-
-// Only redirect if NOT logged in AND NOT already on an auth page
-if (!currentUser && !isAuthPage) {
-    window.location.href = 'login.html';
+// Helper function for status messages in terminal UI & Auth pages
+function setStatus(message, type = 'info') {
+    const statusBox = document.getElementById('status') || document.getElementById('authError');
+    if (!statusBox) return;
+    statusBox.textContent = message;
+    
+    if (type === 'error') {
+        statusBox.style.color = '#ff5f57';
+    } else if (type === 'success') {
+        statusBox.style.color = '#25d69a';
+    } else {
+        statusBox.style.color = '#38bdf8';
+    }
 }
 
+// -------------------------------------------------------------
+// 1. SESSION GUARD & INITIALIZATION
+// -------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
-    const userGreeting = document.getElementById('userGreeting');
-    const logoutBtn = document.getElementById('logoutBtn');
+    const token = localStorage.getItem('cloudbox_token');
+    const user = localStorage.getItem('cloudbox_user');
 
-    if (userGreeting) {
-        if (currentUser) {
-            userGreeting.innerText = currentUser.toUpperCase();
-        } else {
-            userGreeting.innerText = 'CB';
-        }
+    const path = window.location.pathname;
+    const isAuthPage = path.endsWith('login.html') || path.endsWith('register.html');
+
+    // Route Protection: If not logged in and on a protected page, send to login
+    if (!token && !isAuthPage) {
+        window.location.href = 'login.html';
+        return;
     }
 
+    // If already logged in and visiting login/register, send to dashboard
+    if (token && isAuthPage) {
+        window.location.href = 'index.html';
+        return;
+    }
+
+    // Update Avatar Initials if on Dashboard
+    const userGreeting = document.getElementById('userGreeting');
+    if (userGreeting && user) {
+        userGreeting.textContent = user.substring(0, 2).toUpperCase();
+        userGreeting.title = `Logged in as ${user}`;
+    }
+
+    // Attach Logout Click Listener
+    const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            // Clear storage session
-            localStorage.removeItem('cloudbox_user');
             localStorage.removeItem('cloudbox_token');
+            localStorage.removeItem('cloudbox_user');
             window.location.href = 'login.html';
         });
     }
+
+    // Bind File Input and Drag/Drop events
+    initFileUploadHandlers();
 });
 
-// DOM Elements
-const statusDiv = document.getElementById('status');
-const fileInput = document.getElementById('fileInput');
-const dropZone = document.getElementById('dropZone');
-const chunkSizeSelect = document.getElementById('chunkSize');
-const storePlainCheckbox = document.getElementById('storePlainToMongo');
-const segmentBtn = document.getElementById('segmentBtn');
-const encryptBtn = document.getElementById('encryptBtn');
-const uploadBtn = document.getElementById('uploadBtn');
-const decryptBtn = document.getElementById('decryptBtn');
-
-function setStatus(message, type = 'info') {
-    if (!statusDiv) return;
-    const time = new Date().toLocaleTimeString();
-    statusDiv.innerHTML = `[${time}] ${message}`;
-    if (type === 'error') statusDiv.style.color = '#ef4444';
-    else if (type === 'success') statusDiv.style.color = '#10b981';
-    else statusDiv.style.color = '#38bdf8';
-}
-
 // -------------------------------------------------------------
-// 1. FILE SELECTION & HANDLER
+// 2. AUTHENTICATION HANDLERS (Login & Register)
 // -------------------------------------------------------------
-if (fileInput) {
-    fileInput.addEventListener('change', (e) => {
-        if (e.target.files && e.target.files[0]) handleFile(e.target.files[0]);
+
+// Login Form Submit Handler
+const loginForm = document.getElementById('loginForm');
+if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        // Match both 'email' (from login.html) and 'loginEmail'
+        const emailInput = document.getElementById('email') || document.getElementById('loginEmail');
+        const passwordInput = document.getElementById('password') || document.getElementById('loginPassword');
+
+        const email = emailInput ? emailInput.value.trim() : '';
+        const password = passwordInput ? passwordInput.value : '';
+
+        setStatus('Authenticating credentials...', 'info');
+
+        try {
+            const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                setStatus('Login successful! Redirecting to vault...', 'success');
+                // Store verified token and user credentials
+                localStorage.setItem('cloudbox_token', data.token || 'cloudbox_session');
+                localStorage.setItem('cloudbox_user', data.username || email.split('@')[0]);
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 800);
+            } else {
+                setStatus(`Login Failed: ${data.error || 'Invalid credentials or user not registered.'}`, 'error');
+            }
+        } catch (err) {
+            setStatus(`Connection Error: ${err.message}`, 'error');
+        }
     });
 }
 
-if (dropZone) {
+// Registration Form Submit Handler
+const registerForm = document.getElementById('registerForm');
+if (registerForm) {
+    registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('regUsername').value.trim();
+        const email = document.getElementById('regEmail').value.trim();
+        const password = document.getElementById('regPassword').value;
+
+        setStatus('Registering account with server...', 'info');
+
+        try {
+            const response = await fetch(`${BACKEND_URL}/api/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, email, password })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                setStatus('Registration successful! Redirecting to login...', 'success');
+                alert('Account registered successfully! Please log in.');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 1000);
+            } else {
+                setStatus(`Registration Failed: ${data.error || 'Could not register user.'}`, 'error');
+            }
+        } catch (err) {
+            setStatus(`Connection Error: ${err.message}`, 'error');
+        }
+    });
+}
+
+// -------------------------------------------------------------
+// 3. FILE SELECTION & ENCRYPTION PIPELINE
+// -------------------------------------------------------------
+
+function initFileUploadHandlers() {
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+
+    if (!dropZone || !fileInput) return;
+
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleFileSelection(e.target.files[0]);
+        }
+    });
+
     dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
         dropZone.style.borderColor = '#26d9e8';
     });
+
     dropZone.addEventListener('dragleave', () => {
         dropZone.style.borderColor = 'rgba(95,147,255,.45)';
     });
+
     dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
         dropZone.style.borderColor = 'rgba(95,147,255,.45)';
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+        if (e.dataTransfer.files.length) {
+            handleFileSelection(e.dataTransfer.files[0]);
+        }
     });
 }
 
-function handleFile(file) {
+function handleFileSelection(file) {
+    if (!file) return;
     selectedFile = file;
-    fileMetadata = { name: file.name, size: file.size, type: file.type, lastModified: file.lastModified };
-    fileBlocks = [];
-    encryptedBlocks = [];
-    aesKey = null;
-
-    if (segmentBtn) segmentBtn.disabled = false;
-    if (encryptBtn) encryptBtn.disabled = true;
-    if (uploadBtn) uploadBtn.disabled = false; 
-    if (decryptBtn) decryptBtn.disabled = true;
-
-    setStatus(`File selected: ${file.name} (${(file.size / 1024).toFixed(2)} KB). Ready!`, 'success');
+    const encryptBtn = document.getElementById('encryptBtn');
+    if (encryptBtn) encryptBtn.disabled = false;
+    
+    setStatus(`[FILE SELECTED] ${file.name} (${(file.size / 1024).toFixed(2)} KB). Click "Encrypt (AES-256)" to proceed.`, 'info');
 }
 
-// -------------------------------------------------------------
-// 2. SEGMENTATION PIPELINE
-// -------------------------------------------------------------
-if (segmentBtn) {
-    segmentBtn.addEventListener('click', async () => {
-        if (!selectedFile) {
-            setStatus('Please choose a file first.', 'error');
-            return;
-        }
-        const chunkSizeKB = parseInt(chunkSizeSelect ? chunkSizeSelect.value : 256, 10);
-        const chunkSize = chunkSizeKB * 1024;
-        fileBlocks = [];
-        setStatus(`Segmenting file into ${chunkSizeKB} KB blocks...`);
-
-        const arrayBuffer = await selectedFile.arrayBuffer();
-        let offset = 0, blockIndex = 0;
-        while (offset < arrayBuffer.byteLength) {
-            fileBlocks.push({ index: blockIndex, data: arrayBuffer.slice(offset, offset + chunkSize) });
-            offset += chunkSize;
-            blockIndex++;
-        }
-        setStatus(`Segmentation complete! ${fileBlocks.length} blocks generated. Ready to Encrypt.`, 'success');
-        if (encryptBtn) encryptBtn.disabled = false;
-    });
-}
-
-// -------------------------------------------------------------
-// 3. ENCRYPTION PIPELINE (AES-256-GCM)
-// -------------------------------------------------------------
+// Encryption Process Handler
+const encryptBtn = document.getElementById('encryptBtn');
 if (encryptBtn) {
     encryptBtn.addEventListener('click', async () => {
-        if (!fileBlocks.length) {
-            setStatus('No blocks to encrypt. Please segment file first.', 'error');
+        if (!selectedFile) {
+            setStatus('Error: Please select a file first.', 'error');
             return;
         }
-        setStatus('Generating AES-256 key & encrypting blocks...');
+
+        const uploadBtn = document.getElementById('uploadBtn');
+        const decryptBtn = document.getElementById('decryptBtn');
+
+        setStatus('[ENCRYPTING] Processing file with Web Crypto API (AES-256-GCM)...', 'info');
+        encryptBtn.disabled = true;
+
         try {
             aesKey = await crypto.subtle.generateKey(
                 { name: 'AES-GCM', length: 256 },
@@ -145,99 +215,79 @@ if (encryptBtn) {
                 ['encrypt', 'decrypt']
             );
 
+            const fileBuffer = await selectedFile.arrayBuffer();
+            const chunkSize = 1024 * 1024; // 1MB chunks
             encryptedBlocks = [];
-            for (const block of fileBlocks) {
+
+            for (let offset = 0; offset < fileBuffer.byteLength; offset += chunkSize) {
+                const chunk = fileBuffer.slice(offset, offset + chunkSize);
                 const iv = crypto.getRandomValues(new Uint8Array(12));
-                const encryptedBuffer = await crypto.subtle.encrypt(
+
+                const encryptedChunk = await crypto.subtle.encrypt(
                     { name: 'AES-GCM', iv },
                     aesKey,
-                    block.data
+                    chunk
                 );
+
                 encryptedBlocks.push({
-                    index: block.index,
                     iv: Array.from(iv),
-                    data: Array.from(new Uint8Array(encryptedBuffer))
+                    data: Array.from(new Uint8Array(encryptedChunk))
                 });
             }
-            setStatus(`All ${encryptedBlocks.length} blocks encrypted with AES-256-GCM! Ready for AWS S3 Upload.`, 'success');
+
+            fileMetadata = {
+                name: selectedFile.name,
+                size: selectedFile.size,
+                type: selectedFile.type,
+                totalBlocks: encryptedBlocks.length,
+                timestamp: new Date().toISOString()
+            };
+
+            setStatus('[ENCRYPTION COMPLETE] Payload ready for cloud upload.', 'success');
             if (uploadBtn) uploadBtn.disabled = false;
             if (decryptBtn) decryptBtn.disabled = false;
+
         } catch (err) {
-            setStatus(`Encryption failed: ${err.message}`, 'error');
+            setStatus(`[ENCRYPTION ERROR] ${err.message}`, 'error');
+        } finally {
+            encryptBtn.disabled = false;
         }
     });
 }
 
 // -------------------------------------------------------------
-// 4. UPLOAD PIPELINE (AWS S3 OR RAW MONGODB ATLAS)
+// 4. AWS S3 PRESIGNED URL UPLOAD
 // -------------------------------------------------------------
+
+const uploadBtn = document.getElementById('uploadBtn');
 if (uploadBtn) {
     uploadBtn.addEventListener('click', async () => {
-        if (!selectedFile || !fileMetadata) {
-            setStatus('No file selected.', 'error');
-            return;
-        }
-
-        // --- OPTION 1: RAW UNENCRYPTED SAVE TO MONGODB ---
-        if (storePlainCheckbox && storePlainCheckbox.checked) {
-            uploadBtn.disabled = true;
-            setStatus('Uploading raw file directly into MongoDB Atlas...');
-            try {
-                const reader = new FileReader();
-                reader.readAsDataURL(selectedFile);
-                reader.onload = async () => {
-                    const base64Data = reader.result;
-                    const response = await fetch(`${BACKEND_URL}/api/store-raw`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            username: currentUser || 'onkar',
-                            fileName: fileMetadata.name,
-                            fileType: fileMetadata.type,
-                            fileData: base64Data
-                        })
-                    });
-                    const data = await response.json();
-                    if (response.ok && data.success) {
-                        setStatus(`Saved raw file successfully in MongoDB Atlas! 🍃`, 'success');
-                    } else {
-                        throw new Error(data.error || 'Failed to save to MongoDB');
-                    }
-                    uploadBtn.disabled = false;
-                };
-            } catch (err) {
-                setStatus(`MongoDB Save Error: ${err.message}`, 'error');
-                uploadBtn.disabled = false;
-            }
-            return;
-        }
-
-        // --- OPTION 2: ENCRYPTED AWS S3 UPLOAD ---
-        if (!encryptedBlocks.length) {
-            setStatus('Please segment & encrypt file first, OR tick "Store raw file" option.', 'error');
+        if (!encryptedBlocks.length || !fileMetadata) {
+            setStatus('Error: No encrypted payload ready to upload.', 'error');
             return;
         }
 
         uploadBtn.disabled = true;
-        setStatus('Requesting AWS S3 Presigned Upload URL...');
+        setStatus('[CONNECTING] Requesting presigned URL from Render backend...', 'info');
+
         try {
             const response = await fetch(`${BACKEND_URL}/api/upload-url`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ fileName: fileMetadata.name, contentType: 'application/json' })
+                body: JSON.stringify({
+                    fileName: fileMetadata.name,
+                    contentType: 'application/json'
+                })
             });
 
-            const contentType = response.headers.get("content-type");
-            if (!contentType || !contentType.includes("application/json")) {
-                throw new Error("Backend server error. Check Render logs.");
+            const data = await response.json();
+            if (!response.ok || !data.uploadUrl) {
+                throw new Error(data.error || 'Failed to acquire presigned upload URL');
             }
 
-            const data = await response.json();
-            if (!response.ok || !data.uploadUrl) throw new Error(data.error || 'Failed to get upload URL');
-
             const payload = { metadata: fileMetadata, blocks: encryptedBlocks };
-            setStatus('Uploading encrypted file payload to AWS S3...');
-            
+
+            setStatus('[UPLOADING] Encrypted binary payload transmitting to AWS S3...', 'info');
             const s3Response = await fetch(data.uploadUrl, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -245,12 +295,12 @@ if (uploadBtn) {
             });
 
             if (s3Response.ok) {
-                setStatus(`Uploaded to AWS S3! Key: ${data.key}`, 'success');
+                setStatus(`[SUCCESS] File payload stored safely in AWS S3 bucket! Key: ${data.key}`, 'success');
             } else {
-                throw new Error('Direct S3 upload failed');
+                throw new Error('S3 direct PUT upload failed.');
             }
         } catch (err) {
-            setStatus(`Upload Error: ${err.message}`, 'error');
+            setStatus(`[UPLOAD ERROR] ${err.message}`, 'error');
         } finally {
             uploadBtn.disabled = false;
         }
@@ -258,18 +308,23 @@ if (uploadBtn) {
 }
 
 // -------------------------------------------------------------
-// 5. DECRYPTION PIPELINE
+// 5. DECRYPTION & DOWNLOAD PIPELINE
 // -------------------------------------------------------------
+
+const decryptBtn = document.getElementById('decryptBtn');
 if (decryptBtn) {
     decryptBtn.addEventListener('click', async () => {
         if (!aesKey || !encryptedBlocks.length) {
-            setStatus('No encryption key or encrypted blocks found.', 'error');
+            setStatus('Error: Missing AES key or block data.', 'error');
             return;
         }
+
         decryptBtn.disabled = true;
-        setStatus('Decrypting blocks and restoring original file...');
+        setStatus('[DECRYPTING] Reconstructing file chunks and verifying cryptographic signature...', 'info');
+
         try {
             const decryptedParts = [];
+
             for (const block of encryptedBlocks) {
                 const decryptedBuffer = await crypto.subtle.decrypt(
                     { name: 'AES-GCM', iv: new Uint8Array(block.iv) },
@@ -278,7 +333,11 @@ if (decryptBtn) {
                 );
                 decryptedParts.push(decryptedBuffer);
             }
-            const restoredBlob = new Blob(decryptedParts, { type: fileMetadata.type || 'application/octet-stream' });
+
+            const restoredBlob = new Blob(decryptedParts, {
+                type: fileMetadata.type || 'application/octet-stream'
+            });
+
             const url = URL.createObjectURL(restoredBlob);
             const link = document.createElement('a');
             link.href = url;
@@ -286,9 +345,10 @@ if (decryptBtn) {
             document.body.appendChild(link);
             link.click();
             link.remove();
-            setStatus(`Success! Restored file downloaded: restored_${fileMetadata.name}`, 'success');
+
+            setStatus(`[DECRYPTION SUCCESS] Restored file generated: restored_${fileMetadata.name}`, 'success');
         } catch (err) {
-            setStatus(`Decryption Error: ${err.message}`, 'error');
+            setStatus(`[DECRYPTION ERROR] ${err.message}`, 'error');
         } finally {
             decryptBtn.disabled = false;
         }
