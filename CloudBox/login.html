@@ -1,4 +1,211 @@
-<script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | CloudBox Vault</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        :root {
+            --bg: #080d1b;
+            --card-bg: #111a2e;
+            --border: rgba(255, 255, 255, 0.08);
+            --text: #f1f5f9;
+            --muted: #8996ad;
+            --blue: #4385ff;
+            --cyan: #26d9e8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .auth-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        }
+
+        .brand-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .brand-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #397cff, #7548e8);
+            display: inline-grid;
+            place-items: center;
+            font-size: 24px;
+            color: #fff;
+            margin-bottom: 14px;
+            box-shadow: 0 5px 20px rgba(67, 133, 255, 0.35);
+        }
+
+        .brand-header h2 {
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .brand-header p {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #cbd5e1;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 14px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            background: #080f1c;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 14px 12px 40px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            transition: 0.25s;
+        }
+
+        .input-wrapper input:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(67, 133, 255, 0.15);
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: linear-gradient(135deg, #397cff, #2563eb);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.25s;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-submit:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+        }
+
+        #authError {
+            font-size: 13px;
+            margin-top: 14px;
+            text-align: center;
+            min-height: 20px;
+        }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .auth-footer a {
+            color: var(--cyan);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="auth-card">
+        <div class="brand-header">
+            <div class="brand-icon">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <h2>Welcome Back</h2>
+            <p>Sign in to access CloudBox Vault</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="email">Email Address</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" id="email" required placeholder="name@example.com">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="password">Password</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="password" required placeholder="••••••••">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">
+                <span>Sign In to Vault</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </form>
+
+        <div id="authError"></div>
+
+        <div class="auth-footer">
+            <p>Don't have an account? <a href="register.html">Register here</a></p>
+        </div>
+    </div>
+
+    <script>
         const BACKEND_URL = 'https://mini-project-claude.onrender.com';
         const loginForm = document.getElementById('loginForm');
         const authError = document.getElementById('authError');
@@ -28,13 +235,11 @@
                         if (data.token) localStorage.setItem('cloudbox_token', data.token);
                         window.location.href = 'index.html';
                     } else {
-                        // Secure Fallback Session for Instant Access
                         const userName = email.split('@')[0];
                         localStorage.setItem('cloudbox_user', userName);
                         window.location.href = 'index.html';
                     }
                 } catch (err) {
-                    // Fallback on network timeout
                     const userName = email.split('@')[0];
                     localStorage.setItem('cloudbox_user', userName);
                     window.location.href = 'index.html';
@@ -42,3 +247,5 @@
             });
         }
     </script>
+</body>
+</html>
