@@ -46,15 +46,14 @@ app.post('/api/auth/register', async (req, res) => {
 });
 
 app.post('/api/auth/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email, password });
-    if (!user) return res.status(400).json({ success: false, error: 'Invalid email or password' });
-    
-    res.json({ success: true, username: user.username, token: 'cloudbox_demo_token' });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
+    try {
+        const { email, password } = req.body;
+        const user = await User.findOne({ email, password });
+        if (!user) return res.status(400).json({ success: false, error: 'Invalid email or password' });
+        res.json({ success: true, username: user.username, token: 'cloudbox_demo_token' });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
 });
 
 // ☁️ AWS S3 Upload Presigned URL Generator Endpoint
