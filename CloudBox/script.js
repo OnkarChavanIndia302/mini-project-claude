@@ -28,26 +28,20 @@ function setStatus(message, type = 'info') {
 }
 
 // -------------------------------------------------------------
-// PERSISTENT STORED FILES MANAGER (DATE & TIME ENHANCED)
+// STORED FILES MANAGER (UI RENDERER & DATABASE SYNC)
 // -------------------------------------------------------------
-function getStorageKey() {
-    const currentUser = localStorage.getItem('cloudbox_user') || 'default_user';
-    return `cloudbox_files_${currentUser}`;
-}
-
 function addStoredFileToList(fileName, timestampStr = null) {
     if (!fileName) return;
 
     const container = document.getElementById('storedFilesContainer');
     if (!container) return;
 
-    // Remove placeholder empty message if present
+    // Remove placeholder empty text if present
     const noFilesMsg = container.querySelector('.no-files-text');
     if (noFilesMsg) {
         noFilesMsg.remove();
     }
 
-    // Format current date & time if not provided
     const displayTime = timestampStr || new Date().toLocaleString('en-US', {
         month: 'short',
         day: 'numeric',
@@ -74,35 +68,56 @@ function addStoredFileToList(fileName, timestampStr = null) {
             </div>
             <span style="font-size: 11px; color: #10b981; font-weight: 700; background: rgba(16, 185, 129, 0.1); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.2);">SECURED</span>
         `;
-        
-        // Prepend so the newest files appear at the top
+        // Put newest file at the top
         container.insertBefore(row, container.firstChild);
-    }
-
-    // Save object { name, time } into localStorage bound to the current user
-    const storageKey = getStorageKey();
-    let savedFiles = JSON.parse(localStorage.getItem(storageKey) || '[]');
-    const existsInStorage = savedFiles.some(item => typeof item === 'object' ? item.name === fileName : item === fileName);
-
-    if (!existsInStorage) {
-        savedFiles.unshift({ name: fileName, timestamp: displayTime });
-        localStorage.setItem(storageKey, JSON.stringify(savedFiles));
     }
 }
 
-function loadSavedFiles() {
-    const storageKey = getStorageKey();
-    const savedFiles = JSON.parse(localStorage.getItem(storageKey) || '[]');
-    
-    if (savedFiles.length > 0) {
-        // Render in reverse to maintain chronological order
-        [...savedFiles].reverse().forEach(item => {
-            if (typeof item === 'object' && item.name) {
-                addStoredFileToList(item.name, item.timestamp);
-            } else if (typeof item === 'string') {
-                addStoredFileToList(item, 'Previously Uploaded');
-            }
+// Fetch all historical uploaded files directly from MongoDB Atlas server
+async function loadSavedFilesFromDatabase() {
+    const userEmail = localStorage.getItem('cloudbox_user');
+    if (!userEmail) return;
+
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/user-files?email=${encodeURIComponent(userEmail)}`);
+        const data = await response.json();
+
+        if (response.ok && data.files) {
+            // Render historical files from oldest to newest so newest appears on top
+            [...data.files].reverse().forEach(file => {
+                const formattedTime = new Date(file.uploadedAt).toLocaleString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+                addStoredFileToList(file.fileName, formattedTime);
+            });
+        }
+    } catch (err) {
+        console.error('Error fetching file list from server:', err);
+    }
+}
+
+// Save uploaded file metadata to MongoDB server permanently
+async function recordFileUploadInDatabase(fileName, s3Key) {
+    const userEmail = localStorage.getItem('cloudbox_user');
+    if (!userEmail) return;
+
+    try {
+        await fetch(`${BACKEND_URL}/api/record-file`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                email: userEmail,
+                fileName: fileName,
+                s3Key: s3Key
+            })
         });
+    } catch (err) {
+        console.error('Failed to record file in database:', err);
     }
 }
 
@@ -152,8 +167,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Load any saved files for this user into the UI
-    loadSavedFiles();
+    // Load ALL historical files from MongoDB database on login
+    loadSavedFilesFromDatabase();
 
     // Initialize drag-and-drop & file input handlers
     initFileUploadHandlers();
@@ -186,7 +201,7 @@ if (loginForm) {
             if (response.ok && data.success) {
                 setStatus('Login successful! Redirecting...', 'success');
                 localStorage.setItem('cloudbox_token', data.token || 'cloudbox_session_active');
-                localStorage.setItem('cloudbox_user', data.username || email.split('@')[0]);
+                localStorage.setItem('cloudbox_user', email);
                 setTimeout(() => { window.location.href = 'index.html'; }, 800);
             } else {
                 setStatus(`Login Failed: ${data.error || 'Invalid email or password.'}`, 'error');
@@ -206,37 +221,31 @@ function initFileUploadHandlers() {
 
     if (!dropZone || !fileInput) return;
 
-    // Trigger file browser when clicking anywhere inside dropZone
+    // Trigger file input when clicking anywhere inside dropZone
     dropZone.addEventListener('click', (e) => {
-        // Prevent recursive trigger if fileInput itself was clicked
         if (e.target !== fileInput) {
             fileInput.click();
         }
     });
 
-    // Handle file input selection
     fileInput.addEventListener('change', (e) => {
         if (e.target.files.length > 0) {
             handleFileSelection(e.target.files[0]);
         }
     });
 
-    // Drag and Drop visual highlights
     dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
         dropZone.style.borderColor = '#38bdf8';
-        dropZone.style.background = 'rgba(56, 189, 248, 0.08)';
     });
 
     dropZone.addEventListener('dragleave', () => {
-        dropZone.style.borderColor = 'rgba(99, 102, 241, 0.3)';
-        dropZone.style.background = 'rgba(15, 23, 42, 0.5)';
+        dropZone.style.borderColor = 'rgba(99,102,241,0.3)';
     });
 
     dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
-        dropZone.style.borderColor = 'rgba(99, 102, 241, 0.3)';
-        dropZone.style.background = 'rgba(15, 23, 42, 0.5)';
+        dropZone.style.borderColor = 'rgba(99,102,241,0.3)';
         if (e.dataTransfer.files.length) {
             handleFileSelection(e.dataTransfer.files[0]);
         }
@@ -307,7 +316,7 @@ if (encryptBtn) {
 }
 
 // -------------------------------------------------------------
-// 5. AWS S3 PRESIGNED UPLOAD & FILE DISPLAY PIPELINE
+// 5. AWS S3 UPLOAD & MONGO DB RECORDING
 // -------------------------------------------------------------
 const uploadBtn = document.getElementById('uploadBtn');
 if (uploadBtn) {
@@ -348,8 +357,11 @@ if (uploadBtn) {
             if (s3Response.ok) {
                 setStatus(`[SUCCESS] Object stored safely in AWS S3! Key: ${data.key}`, 'success');
                 
-                // Add filename with timestamp to the UI panel instantly
+                // 1. Update UI immediately
                 addStoredFileToList(uploadedName);
+
+                // 2. Save metadata in MongoDB Atlas permanently
+                await recordFileUploadInDatabase(uploadedName, data.key);
             } else {
                 throw new Error('S3 PUT upload request failed.');
             }
