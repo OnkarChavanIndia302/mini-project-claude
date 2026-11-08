@@ -6,7 +6,6 @@
     <title>CloudBox | Secure Cloud Vault</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
     <style>
         :root {
             --bg: #080d1b;
@@ -17,12 +16,10 @@
             --muted: #8996ad;
             --blue: #4385ff;
             --cyan: #26d9e8;
-            --purple: #9566ff;
             --green: #25d69a;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: var(--bg); color: var(--text); min-height: 100vh; }
-        button, select { font-family: inherit; }
 
         .app-container { display: flex; min-height: 100vh; }
         .sidebar { width: 245px; background: #0c1426; border-right: 1px solid var(--border); padding: 28px 18px; display: flex; flex-direction: column; flex-shrink: 0; }
@@ -49,32 +46,21 @@
         .profile-area { display: flex; align-items: center; gap: 17px; }
         .online-status { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--green); background: rgba(37,214,154,.09); padding: 9px 13px; border-radius: 30px; }
         .online-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 9px var(--green); }
-        .avatar { width: 38px; height: 38px; border-radius: 12px; background: linear-gradient(135deg, #4385ff, #9566ff); display: grid; place-items: center; font-weight: 800; cursor: pointer; }
+        .avatar { width: 38px; height: 38px; border-radius: 12px; background: linear-gradient(135deg, #4385ff, #9566ff); display: grid; place-items: center; font-weight: 800; color: white; cursor: pointer; }
         .btn-logout { background: rgba(239,68,68,.1); color: #ff8585; border: 1px solid rgba(239,68,68,.2); padding: 10px 15px; border-radius: 9px; cursor: pointer; font-size: 12px; font-weight: 600; transition: .2s; display: flex; align-items: center; gap: 8px; }
         .btn-logout:hover { background: #dc2626; color: white; }
 
-        .hero { position: relative; overflow: hidden; background: linear-gradient(110deg, #153d78, #26316c 55%, #432c78); border: 1px solid rgba(126,157,255,.2); border-radius: 19px; padding: 32px; margin-bottom: 27px; min-height: 185px; }
+        .hero { position: relative; overflow: hidden; background: linear-gradient(110deg, #153d78, #26316c 55%, #432c78); border: 1px solid rgba(126,157,255,.2); border-radius: 19px; padding: 32px; margin-bottom: 27px; min-height: 140px; }
         .hero-tag { display: inline-block; background: rgba(255,255,255,.12); padding: 7px 11px; border-radius: 30px; font-size: 10px; letter-spacing: 1px; color: #c6eaff; margin-bottom: 15px; }
         .hero h1 { font-size: 25px; margin-bottom: 9px; }
         .hero p { font-size: 12px; color: #c7d7f7; line-height: 1.7; }
-
-        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 17px; margin-bottom: 28px; }
-        .stat-card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 20px; transition: .25s; }
-        .stat-card:hover { transform: translateY(-4px); border-color: rgba(67,133,255,.4); }
-        .stat-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 17px; }
-        .stat-icon { width: 39px; height: 39px; display: grid; place-items: center; border-radius: 11px; font-size: 16px; }
-        .blue-bg { background: rgba(67,133,255,.15); color: #65a0ff; }
-        .green-bg { background: rgba(37,214,154,.13); color: #36dfa8; }
-        .purple-bg { background: rgba(149,102,255,.15); color: #b294ff; }
-        .stat-card h3 { font-size: 22px; margin-bottom: 6px; }
-        .stat-card p { font-size: 11px; color: var(--muted); }
 
         .dashboard-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 20px; margin-bottom: 25px; }
         .card { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
         .card h3 { font-size: 15px; margin-bottom: 7px; }
         .card-subtitle { font-size: 11px; color: var(--muted); margin-bottom: 22px; }
 
-        .drop-zone { border: 1.5px dashed rgba(95,147,255,.45); border-radius: 14px; background: rgba(67,133,255,.045); min-height: 190px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 25px; transition: .3s; cursor: pointer; margin-bottom: 22px; }
+        .drop-zone { border: 1.5px dashed rgba(95,147,255,.45); border-radius: 14px; background: rgba(67,133,255,.045); min-height: 190px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 25px; transition: .3s; cursor: pointer; }
         .drop-zone:hover { border-color: var(--cyan); background: rgba(38,217,232,.06); }
         .drop-icon { width: 57px; height: 57px; border-radius: 16px; background: rgba(67,133,255,.14); display: grid; place-items: center; margin: 0 auto 15px; font-size: 23px; color: #67a5ff; }
         .drop-title { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
@@ -82,13 +68,12 @@
         .browse-link { color: var(--cyan); cursor: pointer; font-weight: 700; }
 
         .action-buttons { display: flex; flex-direction: column; gap: 12px; }
-        .btn { display: flex; align-items: center; justify-content: flex-start; gap: 13px; padding: 15px; border: 1px solid transparent; border-radius: 11px; font-size: 12px; font-weight: 700; cursor: pointer; transition: .25s; color: white; text-align: left; }
+        .btn { display: flex; align-items: center; justify-content: flex-start; gap: 13px; padding: 15px; border: 1px solid transparent; border-radius: 11px; font-size: 12px; font-weight: 700; cursor: pointer; transition: .25s; color: white; }
         .btn:disabled { opacity: .35; cursor: not-allowed; }
         .btn-warning { background: rgba(245,158,11,.12); border-color: rgba(245,158,11,.25); color: #ffc46c; }
         .btn-success { background: rgba(37,214,154,.12); border-color: rgba(37,214,154,.25); color: #54e6b2; }
         .btn-info { background: rgba(38,217,232,.12); border-color: rgba(38,217,232,.25); color: #57e6f1; }
 
-        .security-strip { display: flex; align-items: center; justify-content: space-between; background: #101e32; border: 1px solid var(--border); padding: 17px 20px; border-radius: 13px; margin-bottom: 25px; }
         .audit-terminal { background: #080f1c; border: 1px solid var(--border); border-radius: 13px; overflow: hidden; margin-bottom: 20px; }
         .terminal-header { background: #131e30; padding: 13px 17px; display: flex; align-items: center; gap: 7px; border-bottom: 1px solid var(--border); }
         .dot { width: 9px; height: 9px; border-radius: 50%; }
@@ -100,7 +85,7 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- SIDEBAR -->
+        <!-- SIDEBAR NAVIGATION -->
         <aside class="sidebar">
             <div class="brand">
                 <div class="brand-icon">
@@ -124,9 +109,9 @@
             </div>
         </aside>
 
-        <!-- MAIN CONTENT -->
+        <!-- MAIN CONTENT AREA -->
         <main class="main-content">
-            <!-- HEADER -->
+            <!-- TOPBAR -->
             <header class="topbar">
                 <div>
                     <div class="page-location">Workspace / <span>Dashboard</span></div>
@@ -143,7 +128,7 @@
                 </div>
             </header>
 
-            <!-- HERO -->
+            <!-- HERO CARD -->
             <section class="hero">
                 <div class="hero-content">
                     <div class="hero-tag">
@@ -156,7 +141,7 @@
 
             <!-- DASHBOARD GRID -->
             <div class="dashboard-grid">
-                <!-- FILE UPLOAD -->
+                <!-- UPLOAD SECTION -->
                 <section class="card">
                     <h3><i class="fa-solid fa-cloud-arrow-up" style="color:#4385ff;margin-right:8px;"></i> Upload Your File</h3>
                     <p class="card-subtitle">Select or drop a file to process key encryption.</p>
@@ -170,7 +155,7 @@
                     </div>
                 </section>
 
-                <!-- PROCESS PIPELINE -->
+                <!-- CONTROLS SECTION -->
                 <section class="card">
                     <h3><i class="fa-solid fa-bolt" style="color:#fbbf24;margin-right:8px;"></i> Pipeline Controls</h3>
                     <p class="card-subtitle">Execute crypt-operations on selected object.</p>
@@ -188,7 +173,7 @@
                 </section>
             </div>
 
-            <!-- AUDIT TERMINAL -->
+            <!-- SYSTEM CONSOLE / TERMINAL -->
             <section class="audit-terminal">
                 <div class="terminal-header">
                     <span class="dot red"></span>
@@ -205,7 +190,6 @@
         </main>
     </div>
 
-    <!-- SCRIPT INCLUSION -->
     <script src="script.js"></script>
 </body>
 </html>
