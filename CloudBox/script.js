@@ -206,24 +206,37 @@ function initFileUploadHandlers() {
 
     if (!dropZone || !fileInput) return;
 
+    // Trigger file browser when clicking anywhere inside dropZone
+    dropZone.addEventListener('click', (e) => {
+        // Prevent recursive trigger if fileInput itself was clicked
+        if (e.target !== fileInput) {
+            fileInput.click();
+        }
+    });
+
+    // Handle file input selection
     fileInput.addEventListener('change', (e) => {
         if (e.target.files.length > 0) {
             handleFileSelection(e.target.files[0]);
         }
     });
 
+    // Drag and Drop visual highlights
     dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
         dropZone.style.borderColor = '#38bdf8';
+        dropZone.style.background = 'rgba(56, 189, 248, 0.08)';
     });
 
     dropZone.addEventListener('dragleave', () => {
-        dropZone.style.borderColor = 'rgba(99,102,241,0.3)';
+        dropZone.style.borderColor = 'rgba(99, 102, 241, 0.3)';
+        dropZone.style.background = 'rgba(15, 23, 42, 0.5)';
     });
 
     dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
-        dropZone.style.borderColor = 'rgba(99,102,241,0.3)';
+        dropZone.style.borderColor = 'rgba(99, 102, 241, 0.3)';
+        dropZone.style.background = 'rgba(15, 23, 42, 0.5)';
         if (e.dataTransfer.files.length) {
             handleFileSelection(e.dataTransfer.files[0]);
         }
