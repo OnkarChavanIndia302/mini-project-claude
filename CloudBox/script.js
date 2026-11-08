@@ -269,6 +269,65 @@ if (encryptBtn) {
     });
 }
 
+// Add this helper function to record and display uploaded file names
+function addStoredFileToList(fileName) {
+    const container = document.getElementById('storedFilesContainer');
+    if (!container) return;
+
+    // Remove placeholder text if it's the first file
+    const noFilesMsg = container.querySelector('.no-files-text');
+    if (noFilesMsg) {
+        noFilesMsg.remove();
+    }
+
+    // Create file list row showing filename only
+    const row = document.createElement('div');
+    row.className = 'file-item-row';
+    row.innerHTML = `
+        <div class="file-item-info">
+            <i class="fa-solid fa-file-shield"></i>
+            <span>${fileName}</span>
+        </div>
+        <span style="font-size: 11px; color: var(--accent-emerald); font-weight: 600;">SECURED</span>
+    `;
+    container.appendChild(row);
+
+    // Also persist list to localStorage so it stays on refresh
+    let savedFiles = JSON.parse(localStorage.getItem('cloudbox_files') || '[]');
+    if (!savedFiles.includes(fileName)) {
+        savedFiles.push(fileName);
+        localStorage.setItem('cloudbox_files', JSON.stringify(savedFiles));
+    }
+}
+
+// Load saved files on page start inside DOMContentLoaded
+document.addEventListener('DOMContentLoaded', () => {
+    // ... existing initialization code ...
+    
+    // Load previously stored files from localStorage
+    const savedFiles = JSON.parse(localStorage.getItem('cloudbox_files') || '[]');
+    if (savedFiles.length > 0) {
+        const container = document.getElementById('storedFilesContainer');
+        if (container) {
+            const noFilesMsg = container.querySelector('.no-files-text');
+            if (noFilesMsg) noFilesMsg.remove();
+
+            savedFiles.forEach(fileName => {
+                const row = document.createElement('div');
+                row.className = 'file-item-row';
+                row.innerHTML = `
+                    <div class="file-item-info">
+                        <i class="fa-solid fa-file-shield"></i>
+                        <span>${fileName}</span>
+                    </div>
+                    <span style="font-size: 11px; color: var(--accent-emerald); font-weight: 600;">SECURED</span>
+                `;
+                container.appendChild(row);
+            });
+        }
+    }
+});
+
 // -------------------------------------------------------------
 // 5. AWS S3 PRESIGNED UPLOAD PIPELINE
 // -------------------------------------------------------------
