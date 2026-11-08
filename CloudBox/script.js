@@ -27,22 +27,23 @@ function setStatus(message, type = 'info') {
 }
 
 // -------------------------------------------------------------
-// 1. SESSION GUARD & INITIALIZATION (CLEANED)
+// 1. SESSION GUARD & INITIALIZATION
 // -------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem('cloudbox_token');
     const user = localStorage.getItem('cloudbox_user');
 
+    // Get current filename (handles both /index.html and / paths)
     const path = window.location.pathname;
-    const isAuthPage = path.includes('login.html') || path.includes('register.html');
+    const isAuthPage = path.endsWith('login.html') || path.endsWith('register.html');
 
-    // Route Protection: If not logged in and not on login/register pages, redirect to login
+    // Route Protection: If not logged in and on a protected page, send to login
     if (!token && !isAuthPage) {
         window.location.href = 'login.html';
         return;
     }
 
-    // If already logged in and visiting login/register pages, send to dashboard
+    // If already logged in and visiting login/register, send to dashboard
     if (token && isAuthPage) {
         window.location.href = 'index.html';
         return;
