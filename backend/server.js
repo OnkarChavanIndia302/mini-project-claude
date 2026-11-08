@@ -48,9 +48,40 @@ app.post('/api/auth/register', async (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
     try {
         const { email, password } = req.body;
-        const user = await User.findOne({ email, password });
-        if (!user) return res.status(400).json({ success: false, error: 'Invalid email or password' });
-        res.json({ success: true, username: user.username, token: 'cloudbox_demo_token' });
+
+        // 1. Verify input fields exist
+        if (!email || !password) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Please provide both email and password.' 
+            });
+        }
+
+        // 2. Check if the user exists in MongoDB first
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ 
+                success: false, 
+                error: 'User not registered. Please register first.' 
+            });
+        }
+
+        // 3. Verify the password matches
+        if (user.password !== password) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Incorrect password.' 
+            });
+        }
+
+        // 4. Successful login
+        res.json({ 
+            success: true, 
+            message: 'Login successful', 
+            username: user.username, 
+            token: 'cloudbox_demo_token' 
+        });
+
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }
