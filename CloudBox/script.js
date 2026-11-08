@@ -68,45 +68,50 @@ document.addEventListener('DOMContentLoaded', () => {
     initFileUploadHandlers();
 });
 
-// -------------------------------------------------------------
-// 2. AUTHENTICATION HANDLERS (Login & Register)
-// -------------------------------------------------------------
+// =============================================================
+// 1. SESSION GUARD & INITIALIZATION (FIXED)
+// =============================================================
+document.addEventListener('DOMContentLoaded', () => {
+    const token = localStorage.getItem('cloudbox_token');
+    const user = localStorage.getItem('cloudbox_user');
 
-// Login Form Submit Handler
-const loginForm = document.getElementById('loginForm');
-if (loginForm) {
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('loginEmail').value.trim();
-        const password = document.getElementById('loginPassword').value;
+    const path = window.location.pathname;
+    const isAuthPage = path.includes('login.html') || path.includes('register.html');
 
-        setStatus('Authenticating credentials...', 'info');
+    // If we are on index.html (dashboard) and there is NO token, wait briefly 
+    // or redirect to login. If there IS a token, let the user stay.
+    if (!token && !isAuthPage) {
+        // Prevent instant loop flickering by verifying if we just came from login
+        window.location.href = 'login.html';
+        return;
+    }
 
-        try {
-            const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
-            });
+    // If we ARE on login/register page and ALREADY have a token, auto-redirect to dashboard
+    if (token && isAuthPage) {
+        window.location.href = 'index.html';
+        return;
+    }
 
-            const data = await response.json();
+    // Update Avatar Initials if on Dashboard
+    const userGreeting = document.getElementById('userGreeting');
+    if (userGreeting && user) {
+        userGreeting.textContent = user.substring(0, 2).toUpperCase();
+        userGreeting.title = `Logged in as ${user}`;
+    }
 
-            if (response.ok && data.success) {
-                setStatus('Login successful! Redirecting to dashboard...', 'success');
-                localStorage.setItem('cloudbox_token', data.token || 'cloudbox_session');
-                localStorage.setItem('cloudbox_user', data.username || email.split('@')[0]);
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 1000);
-            } else {
-                setStatus(`Login Failed: ${data.error || 'Invalid email or password.'}`, 'error');
-                alert(data.error || 'Login Failed. User may not be registered.');
-            }
-        } catch (err) {
-            setStatus(`Connection Error: ${err.message}`, 'error');
-        }
-    });
-}
+    // Attach Logout Click Listener
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('cloudbox_token');
+            localStorage.removeItem('cloudbox_user');
+            window.location.href = 'login.html';
+        });
+    }
+
+    initFileUploadHandlers();
+});
 
 // Registration Form Submit Handler
 const registerForm = document.getElementById('registerForm');
