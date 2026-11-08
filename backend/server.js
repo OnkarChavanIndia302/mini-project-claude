@@ -107,6 +107,39 @@ app.post('/api/upload-url', async (req, res) => {
   }
 });
 
+// Example MongoDB File Schema in server.js
+const fileSchema = new mongoose.Schema({
+    userId: { type: String, required: true },
+    fileName: { type: String, required: true },
+    s3Key: { type: String, required: true },
+    uploadedAt: { type: Date, default: Date.now }
+});
+
+const FileModel = mongoose.model('File', fileSchema);
+
+// Endpoint to fetch all past uploaded files for a logged-in user
+app.get('/api/user-files', async (req, res) => {
+    try {
+        const email = req.query.email;
+        const files = await FileModel.find({ userId: email }).sort({ uploadedAt: -1 });
+        res.json({ success: true, files });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// Endpoint to record a new file upload
+app.post('/api/record-file', async (req, res) => {
+    try {
+        const { email, fileName, s3Key } = req.body;
+        const newFile = await FileModel.create({ userId: email, fileName, s3Key });
+        res.json({ success: true, file: newFile });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+
 app.get('/', (req, res) => {
   res.send('CloudBox Backend Active 🚀');
 });
