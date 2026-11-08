@@ -1,46 +1,86 @@
 // =============================================================
 // CloudBox - Modern Secure File Management
-// Hosted Backend Configuration
+// Deployed Live Backend Configuration & Client Storage
 // =============================================================
 
-// 1. HOSTED BACKEND URL
 const BACKEND_URL = 'https://mini-project-claude.onrender.com';
 
-// State variables for Web Crypto API & S3 payload
+// Global variables for Web Crypto API & S3 payload
 let aesKey = null;
 let encryptedBlocks = [];
 let fileMetadata = null;
+let selectedFile = null;
 
-// DOM Elements
-const dropZone = document.getElementById('dropZone');
-const fileInput = document.getElementById('fileInput');
-const selectFileBtn = document.getElementById('selectFileBtn');
-const selectedFileInfo = document.getElementById('selectedFileInfo');
-const encryptBtn = document.getElementById('encryptBtn');
-const uploadBtn = document.getElementById('uploadBtn');
-const decryptBtn = document.getElementById('decryptBtn');
-const statusBox = document.getElementById('statusBox');
-
-// Helper function for status messages
+// Helper function for status messages in terminal UI
 function setStatus(message, type = 'info') {
+    const statusBox = document.getElementById('status');
     if (!statusBox) return;
     statusBox.textContent = message;
-    statusBox.className = `status-box ${type}`;
+    
+    if (type === 'error') {
+        statusBox.style.color = '#ff5f57';
+    } else if (type === 'success') {
+        statusBox.style.color = '#25d69a';
+    } else {
+        statusBox.style.color = '#45d6ae';
+    }
 }
+
+// -------------------------------------------------------------
+// 1. SESSION GUARD & INITIALIZATION
+// -------------------------------------------------------------
+document.addEventListener('DOMContentLoaded', () => {
+    const token = localStorage.getItem('cloudbox_token');
+    const user = localStorage.getItem('cloudbox_user');
+
+    // Get current page path
+    const path = window.location.pathname;
+    const isAuthPage = path.includes('login.html') || path.includes('register.html');
+
+    // Route Protection: If not logged in and not on login/register pages, redirect to login
+    if (!token && !isAuthPage) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    // Update Avatar Initials if on Dashboard
+    const userGreeting = document.getElementById('userGreeting');
+    if (userGreeting && user) {
+        userGreeting.textContent = user.substring(0, 2).toUpperCase();
+        userGreeting.title = `Logged in as ${user}`;
+    }
+
+    // Attach Logout Click Listener
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            // Clear saved local user session data
+            localStorage.removeItem('cloudbox_token');
+            localStorage.removeItem('cloudbox_user');
+            
+            // Redirect to login page
+            window.location.href = 'login.html';
+        });
+    }
+
+    // Bind File Input and Drag/Drop events if elements are present on current page
+    initFileUploadHandlers();
+});
 
 // -------------------------------------------------------------
 // 2. AUTHENTICATION HANDLERS (Login & Register)
 // -------------------------------------------------------------
 
-// Handle User Login
+// Login Form Submit Handler
 const loginForm = document.getElementById('loginForm');
 if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const email = document.getElementById('loginEmail').value;
+        const email = document.getElementById('loginEmail').value.trim();
         const password = document.getElementById('loginPassword').value;
 
-        setStatus('Logging in...', 'info');
+        setStatus('Authenticating credentials...', 'info');
 
         try {
             const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
@@ -52,31 +92,32 @@ if (loginForm) {
             const data = await response.json();
 
             if (response.ok && data.success) {
-                setStatus('Login successful! Redirecting...', 'success');
-                localStorage.setItem('cloudbox_token', data.token);
-                localStorage.setItem('cloudbox_user', data.username);
+                setStatus('Login successful! Redirecting to dashboard...', 'success');
+                localStorage.setItem('cloudbox_token', data.token || 'cloudbox_session');
+                localStorage.setItem('cloudbox_user', data.username || email.split('@')[0]);
                 setTimeout(() => {
                     window.location.href = 'index.html';
                 }, 1000);
             } else {
-                setStatus(`Login Failed: ${data.error || 'Invalid credentials'}`, 'error');
+                setStatus(`Login Failed: ${data.error || 'Invalid email or password.'}`, 'error');
+                alert(data.error || 'Login Failed. User may not be registered.');
             }
         } catch (err) {
-            setStatus(`Server Connection Error: ${err.message}`, 'error');
+            setStatus(`Connection Error: ${err.message}`, 'error');
         }
     });
 }
 
-// Handle User Registration
+// Registration Form Submit Handler
 const registerForm = document.getElementById('registerForm');
 if (registerForm) {
     registerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const username = document.getElementById('regUsername').value;
-        const email = document.getElementById('regEmail').value;
+        const username = document.getElementById('regUsername').value.trim();
+        const email = document.getElementById('regEmail').value.trim();
         const password = document.getElementById('regPassword').value;
 
-        setStatus('Creating account...', 'info');
+        setStatus('Registering account with server...', 'info');
 
         try {
             const response = await fetch(`${BACKEND_URL}/api/auth/register`, {
@@ -89,14 +130,16 @@ if (registerForm) {
 
             if (response.ok && data.success) {
                 setStatus('Registration successful! Redirecting to login...', 'success');
+                alert('Account registered successfully! Please log in.');
                 setTimeout(() => {
                     window.location.href = 'login.html';
-                }, 1500);
+                }, 1200);
             } else {
-                setStatus(`Registration Failed: ${data.error || 'Failed to register'}`, 'error');
+                setStatus(`Registration Failed: ${data.error || 'Could not register user.'}`, 'error');
+                alert(data.error || 'Registration failed.');
             }
         } catch (err) {
-            setStatus(`Server Connection Error: ${err.message}`, 'error');
+            setStatus(`Connection Error: ${err.message}`, 'error');
         }
     });
 }
@@ -105,24 +148,31 @@ if (registerForm) {
 // 3. FILE SELECTION & ENCRYPTION PIPELINE
 // -------------------------------------------------------------
 
-let selectedFile = null;
+function initFileUploadHandlers() {
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const encryptBtn = document.getElementById('encryptBtn');
 
-if (selectFileBtn && fileInput) {
-    selectFileBtn.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', (e) => handleFileSelection(e.target.files[0]));
-}
+    if (!dropZone || !fileInput) return;
 
-if (dropZone) {
-    dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropZone.classList.add('drag-over');
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleFileSelection(e.target.files[0]);
+        }
     });
 
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = '#26d9e8';
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.style.borderColor = 'rgba(95,147,255,.45)';
+    });
 
     dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
-        dropZone.classList.remove('drag-over');
+        dropZone.style.borderColor = 'rgba(95,147,255,.45)';
         if (e.dataTransfer.files.length) {
             handleFileSelection(e.dataTransfer.files[0]);
         }
@@ -132,26 +182,29 @@ if (dropZone) {
 function handleFileSelection(file) {
     if (!file) return;
     selectedFile = file;
-    if (selectedFileInfo) {
-        selectedFileInfo.textContent = `Selected File: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
-    }
+    const encryptBtn = document.getElementById('encryptBtn');
     if (encryptBtn) encryptBtn.disabled = false;
-    setStatus('File loaded. Click "Encrypt File" to begin encryption.', 'info');
+    
+    setStatus(`[FILE SELECTED] ${file.name} (${(file.size / 1024).toFixed(2)} KB). Click "Encrypt (AES-256)" to proceed.`, 'info');
 }
 
-// AES-GCM Client-Side Encryption
+// Encryption Process Handler
+const encryptBtn = document.getElementById('encryptBtn');
 if (encryptBtn) {
     encryptBtn.addEventListener('click', async () => {
         if (!selectedFile) {
-            setStatus('Please select a file first.', 'error');
+            setStatus('Error: Please select a file first.', 'error');
             return;
         }
 
-        setStatus('Encrypting file using Web Crypto API (AES-GCM-256)...', 'info');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const decryptBtn = document.getElementById('decryptBtn');
+
+        setStatus('[ENCRYPTING] Processing file with Web Crypto API (AES-256-GCM)...', 'info');
         encryptBtn.disabled = true;
 
         try {
-            // Generate 256-bit AES-GCM Key
+            // Generate 256-bit AES key
             aesKey = await crypto.subtle.generateKey(
                 { name: 'AES-GCM', length: 256 },
                 true,
@@ -186,12 +239,12 @@ if (encryptBtn) {
                 timestamp: new Date().toISOString()
             };
 
-            setStatus('File encrypted successfully! Ready to upload to AWS S3.', 'success');
+            setStatus('[ENCRYPTION COMPLETE] Payload ready for cloud upload.', 'success');
             if (uploadBtn) uploadBtn.disabled = false;
             if (decryptBtn) decryptBtn.disabled = false;
 
         } catch (err) {
-            setStatus(`Encryption Error: ${err.message}`, 'error');
+            setStatus(`[ENCRYPTION ERROR] ${err.message}`, 'error');
         } finally {
             encryptBtn.disabled = false;
         }
@@ -199,37 +252,19 @@ if (encryptBtn) {
 }
 
 // -------------------------------------------------------------
-// LOGOUT HANDLER & SESSION CHECK
+// 4. AWS S3 PRESIGNED URL UPLOAD
 // -------------------------------------------------------------
 
-// Attach click listener to the Logout button
-const logoutBtn = document.getElementById('logoutBtn');
-if (logoutBtn) {
-    logoutBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        
-        // 1. Clear saved user session data
-        localStorage.removeItem('cloudbox_token');
-        localStorage.removeItem('cloudbox_user');
-
-        // 2. Redirect to login page
-        window.location.href = 'login.html';
-    });
-}
-
-// -------------------------------------------------------------
-// 4. AWS S3 PRESIGNED UPLOAD PIPELINE
-// -------------------------------------------------------------
-
+const uploadBtn = document.getElementById('uploadBtn');
 if (uploadBtn) {
     uploadBtn.addEventListener('click', async () => {
         if (!encryptedBlocks.length || !fileMetadata) {
-            setStatus('No encrypted payload available. Encrypt a file first.', 'error');
+            setStatus('Error: No encrypted payload ready to upload.', 'error');
             return;
         }
 
         uploadBtn.disabled = true;
-        setStatus('Requesting AWS S3 Presigned Upload URL...', 'info');
+        setStatus('[CONNECTING] Requesting presigned URL from Render backend...', 'info');
 
         try {
             const response = await fetch(`${BACKEND_URL}/api/upload-url`, {
@@ -241,19 +276,14 @@ if (uploadBtn) {
                 })
             });
 
-            const contentType = response.headers.get("content-type");
-            if (!contentType || !contentType.includes("application/json")) {
-                throw new Error("Backend server error. Check Render logs.");
-            }
-
             const data = await response.json();
             if (!response.ok || !data.uploadUrl) {
-                throw new Error(data.error || 'Failed to get upload URL');
+                throw new Error(data.error || 'Failed to acquire presigned upload URL');
             }
 
             const payload = { metadata: fileMetadata, blocks: encryptedBlocks };
 
-            setStatus('Uploading encrypted file payload to AWS S3...', 'info');
+            setStatus('[UPLOADING] Encrypted binary payload transmitting to AWS S3...', 'info');
             const s3Response = await fetch(data.uploadUrl, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -261,12 +291,12 @@ if (uploadBtn) {
             });
 
             if (s3Response.ok) {
-                setStatus(`Uploaded to AWS S3! Key: ${data.key}`, 'success');
+                setStatus(`[SUCCESS] File payload stored safely in AWS S3 bucket! Key: ${data.key}`, 'success');
             } else {
-                throw new Error('Direct S3 upload failed');
+                throw new Error('S3 direct PUT upload failed.');
             }
         } catch (err) {
-            setStatus(`Upload Error: ${err.message}`, 'error');
+            setStatus(`[UPLOAD ERROR] ${err.message}`, 'error');
         } finally {
             uploadBtn.disabled = false;
         }
@@ -274,18 +304,19 @@ if (uploadBtn) {
 }
 
 // -------------------------------------------------------------
-// 5. DECRYPTION PIPELINE
+// 5. DECRYPTION & DOWNLOAD PIPELINE
 // -------------------------------------------------------------
 
+const decryptBtn = document.getElementById('decryptBtn');
 if (decryptBtn) {
     decryptBtn.addEventListener('click', async () => {
         if (!aesKey || !encryptedBlocks.length) {
-            setStatus('No encryption key or encrypted blocks found.', 'error');
+            setStatus('Error: Missing AES key or block data.', 'error');
             return;
         }
 
         decryptBtn.disabled = true;
-        setStatus('Decrypting blocks and restoring original file...', 'info');
+        setStatus('[DECRYPTING] Reconstructing file chunks and verifying cryptographic signature...', 'info');
 
         try {
             const decryptedParts = [];
@@ -311,9 +342,9 @@ if (decryptBtn) {
             link.click();
             link.remove();
 
-            setStatus(`Success! Restored file downloaded: restored_${fileMetadata.name}`, 'success');
+            setStatus(`[DECRYPTION SUCCESS] Restored file generated: restored_${fileMetadata.name}`, 'success');
         } catch (err) {
-            setStatus(`Decryption Error: ${err.message}`, 'error');
+            setStatus(`[DECRYPTION ERROR] ${err.message}`, 'error');
         } finally {
             decryptBtn.disabled = false;
         }
