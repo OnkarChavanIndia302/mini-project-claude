@@ -28,19 +28,34 @@ function setStatus(message, type = 'info') {
 }
 
 // -------------------------------------------------------------
-// STORED FILES MANAGER (UI & LOCALSTORAGE INTEGRATION)
+// PERSISTENT STORED FILES MANAGER (DATE & TIME ENHANCED)
 // -------------------------------------------------------------
-function addStoredFileToList(fileName) {
+function getStorageKey() {
+    const currentUser = localStorage.getItem('cloudbox_user') || 'default_user';
+    return `cloudbox_files_${currentUser}`;
+}
+
+function addStoredFileToList(fileName, timestampStr = null) {
     if (!fileName) return;
 
     const container = document.getElementById('storedFilesContainer');
     if (!container) return;
 
-    // Remove placeholder empty text if present
+    // Remove placeholder empty message if present
     const noFilesMsg = container.querySelector('.no-files-text');
     if (noFilesMsg) {
         noFilesMsg.remove();
     }
+
+    // Format current date & time if not provided
+    const displayTime = timestampStr || new Date().toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    });
 
     // Check if filename already exists in the list UI
     const existingNames = Array.from(container.querySelectorAll('.file-name-text')).map(el => el.textContent.trim());
@@ -50,25 +65,44 @@ function addStoredFileToList(fileName) {
         row.innerHTML = `
             <div class="file-item-info">
                 <i class="fa-solid fa-file-shield" style="color: #38bdf8; margin-right: 8px;"></i>
-                <span class="file-name-text" style="font-size: 13px; font-weight: 600; color: #f8fafc;">${fileName}</span>
+                <div>
+                    <div class="file-name-text" style="font-size: 13px; font-weight: 600; color: #f8fafc;">${fileName}</div>
+                    <div style="font-size: 10px; color: #94a3b8; margin-top: 2px;">
+                        <i class="fa-regular fa-clock" style="font-size: 9px; margin-right: 4px;"></i>${displayTime}
+                    </div>
+                </div>
             </div>
             <span style="font-size: 11px; color: #10b981; font-weight: 700; background: rgba(16, 185, 129, 0.1); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.2);">SECURED</span>
         `;
-        container.appendChild(row);
+        
+        // Prepend so the newest files appear at the top
+        container.insertBefore(row, container.firstChild);
     }
 
-    // Persist list to localStorage
-    let savedFiles = JSON.parse(localStorage.getItem('cloudbox_files') || '[]');
-    if (!savedFiles.includes(fileName)) {
-        savedFiles.push(fileName);
-        localStorage.setItem('cloudbox_files', JSON.stringify(savedFiles));
+    // Save object { name, time } into localStorage bound to the current user
+    const storageKey = getStorageKey();
+    let savedFiles = JSON.parse(localStorage.getItem(storageKey) || '[]');
+    const existsInStorage = savedFiles.some(item => typeof item === 'object' ? item.name === fileName : item === fileName);
+
+    if (!existsInStorage) {
+        savedFiles.unshift({ name: fileName, timestamp: displayTime });
+        localStorage.setItem(storageKey, JSON.stringify(savedFiles));
     }
 }
 
 function loadSavedFiles() {
-    const savedFiles = JSON.parse(localStorage.getItem('cloudbox_files') || '[]');
+    const storageKey = getStorageKey();
+    const savedFiles = JSON.parse(localStorage.getItem(storageKey) || '[]');
+    
     if (savedFiles.length > 0) {
-        savedFiles.forEach(fileName => addStoredFileToList(fileName));
+        // Render in reverse to maintain chronological order
+        [...savedFiles].reverse().forEach(item => {
+            if (typeof item === 'object' && item.name) {
+                addStoredFileToList(item.name, item.timestamp);
+            } else if (typeof item === 'string') {
+                addStoredFileToList(item, 'Previously Uploaded');
+            }
+        });
     }
 }
 
@@ -118,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Load any previously saved files into UI panel
+    // Load any saved files for this user into the UI
     loadSavedFiles();
 
     // Initialize drag-and-drop & file input handlers
@@ -270,7 +304,7 @@ if (uploadBtn) {
             return;
         }
 
-        const uploadedName = fileMetadata.name; // Preserve file name in closure
+        const uploadedName = fileMetadata.name;
         uploadBtn.disabled = true;
         setStatus('[CONNECTING] Requesting presigned URL from Render backend...', 'info');
 
@@ -301,7 +335,7 @@ if (uploadBtn) {
             if (s3Response.ok) {
                 setStatus(`[SUCCESS] Object stored safely in AWS S3! Key: ${data.key}`, 'success');
                 
-                // Immediately update stored files UI with the file name
+                // Add filename with timestamp to the UI panel instantly
                 addStoredFileToList(uploadedName);
             } else {
                 throw new Error('S3 PUT upload request failed.');
