@@ -199,6 +199,25 @@ if (encryptBtn) {
 }
 
 // -------------------------------------------------------------
+// LOGOUT HANDLER & SESSION CHECK
+// -------------------------------------------------------------
+
+// Attach click listener to the Logout button
+const logoutBtn = document.getElementById('logoutBtn');
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        
+        // 1. Clear saved user session data
+        localStorage.removeItem('cloudbox_token');
+        localStorage.removeItem('cloudbox_user');
+
+        // 2. Redirect to login page
+        window.location.href = 'login.html';
+    });
+}
+
+// -------------------------------------------------------------
 // 4. AWS S3 PRESIGNED UPLOAD PIPELINE
 // -------------------------------------------------------------
 
