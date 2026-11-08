@@ -146,8 +146,8 @@
         .metric-value { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; }
         .metric-label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
 
-        /* DASHBOARD GRID PIPELINE */
-        .dashboard-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 24px; }
+        /* DASHBOARD GRID PIPELINE & STORED FILES */
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
         .card { 
             background: var(--panel-bg); border: 1px solid var(--panel-border); 
             border-radius: 20px; padding: 28px; backdrop-filter: blur(15px); 
@@ -156,38 +156,69 @@
         .card-header h3 { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
         .card-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
 
-        /* DROPZONE ENHANCEMENTS */
+        /* STORED FILES LIST CONTAINER */
+        .files-list-container {
+            max-height: 250px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-right: 4px;
+        }
+        .file-item-row {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 12px 16px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+        .file-item-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            word-break: break-all;
+        }
+        .file-item-info i {
+            color: var(--accent-blue);
+        }
+        .no-files-text {
+            color: var(--text-muted);
+            font-size: 13px;
+            text-align: center;
+            padding: 30px;
+            font-style: italic;
+        }
+
+        /* DROPZONE */
         .drop-zone { 
             border: 2px dashed rgba(99, 102, 241, 0.3); border-radius: 16px; 
-            background: rgba(15, 23, 42, 0.5); min-height: 210px; 
+            background: rgba(15, 23, 42, 0.5); min-height: 190px; 
             display: flex; align-items: center; justify-content: center; 
-            text-align: center; padding: 30px; transition: all 0.3s ease; cursor: pointer; 
+            text-align: center; padding: 20px; transition: all 0.3s ease; cursor: pointer; 
         }
         .drop-zone:hover { border-color: var(--accent-blue); background: rgba(56, 189, 248, 0.04); }
         .drop-icon { 
-            width: 60px; height: 60px; border-radius: 18px; background: rgba(99, 102, 241, 0.12); 
-            display: grid; place-items: center; margin: 0 auto 16px; font-size: 26px; color: var(--accent-blue); 
-            transition: transform 0.3s ease;
+            width: 50px; height: 50px; border-radius: 14px; background: rgba(99, 102, 241, 0.12); 
+            display: grid; place-items: center; margin: 0 auto 12px; font-size: 22px; color: var(--accent-blue); 
         }
-        .drop-zone:hover .drop-icon { transform: scale(1.08); }
-        .drop-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
-        .drop-sub { color: var(--text-muted); font-size: 12px; }
+        .drop-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+        .drop-sub { color: var(--text-muted); font-size: 11px; }
         .browse-link { color: var(--accent-blue); font-weight: 700; cursor: pointer; text-decoration: underline; }
 
         /* PIPELINE ACTION BUTTONS */
-        .action-buttons { display: flex; flex-direction: column; gap: 14px; }
+        .action-buttons { display: flex; flex-direction: column; gap: 10px; }
         .btn { 
-            display: flex; align-items: center; justify-content: flex-start; gap: 14px; 
-            padding: 16px 20px; border: 1px solid transparent; border-radius: 14px; 
-            font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.25s ease; color: #fff; 
+            display: flex; align-items: center; justify-content: flex-start; gap: 12px; 
+            padding: 13px 18px; border: 1px solid transparent; border-radius: 12px; 
+            font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.25s ease; color: #fff; 
         }
         .btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none !important; }
         .btn-warning { background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.3); color: #fbbf24; }
-        .btn-warning:hover:not(:disabled) { background: rgba(245, 158, 11, 0.22); transform: translateY(-2px); }
         .btn-success { background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.3); color: #34d399; }
-        .btn-success:hover:not(:disabled) { background: rgba(16, 185, 129, 0.22); transform: translateY(-2px); }
         .btn-info { background: rgba(56, 189, 248, 0.12); border-color: rgba(56, 189, 248, 0.3); color: #38bdf8; }
-        .btn-info:hover:not(:disabled) { background: rgba(56, 189, 248, 0.22); transform: translateY(-2px); }
 
         /* TERMINAL CONSOLE */
         .audit-terminal { 
@@ -202,8 +233,8 @@
         .red { background: #ef4444; } .yellow { background: #f59e0b; } .green { background: #10b981; }
         .terminal-title { font-size: 12px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; margin-left: 8px; font-weight: 500; }
         .terminal-body { 
-            padding: 22px; font-family: 'JetBrains Mono', monospace; font-size: 13px; 
-            color: #38bdf8; min-height: 90px; line-height: 1.7; word-break: break-all;
+            padding: 20px; font-family: 'JetBrains Mono', monospace; font-size: 13px; 
+            color: #38bdf8; min-height: 80px; line-height: 1.7; word-break: break-all;
         }
 
         .footer { text-align: center; color: #475569; font-size: 12px; padding: 8px; }
@@ -211,7 +242,7 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- SIDEBAR -->
+        <!-- SIDEBAR (Cleaned up: Secure Storage, Key Management, and AWS Direct Transfer removed) -->
         <aside class="sidebar">
             <div class="brand">
                 <div class="brand-icon">
@@ -222,11 +253,9 @@
 
             <div class="nav-label">WORKSPACE</div>
             <div class="nav-item active"><i class="fa-solid fa-chart-pie"></i> Dashboard</div>
-            <div class="nav-item"><i class="fa-solid fa-vault"></i> Secure Storage</div>
-            <div class="nav-item"><i class="fa-solid fa-key"></i> Key Management</div>
-            <div class="nav-item"><i class="fa-solid fa-cloud-arrow-up"></i> AWS Direct Transfer</div>
+            <div class="nav-item"><i class="fa-solid fa-folder-open"></i> Stored Files</div>
 
-            <div class="nav-label" style="margin-top: 36px;">INFRASTRUCTURE</div>
+            <div class="nav-label" style="margin-top: 36px;">SYSTEM</div>
             <div class="nav-item"><i class="fa-solid fa-sliders"></i> Engine Settings</div>
             <div class="nav-item"><i class="fa-solid fa-terminal"></i> Audit Logs</div>
 
@@ -234,7 +263,7 @@
                 <div class="security-card">
                     <i class="fa-solid fa-user-shield"></i>
                     <h4>AES-256 Enabled</h4>
-                    <p>Client-side cryptographic chunking verified for high-security cloud storage.</p>
+                    <p>Client-side cryptographic chunking verified for secure cloud storage.</p>
                 </div>
             </div>
         </aside>
@@ -258,18 +287,18 @@
                 </div>
             </header>
 
-            <!-- HERO BANNER -->
+            <!-- HERO BANNER (Cleaned up subtitle text) -->
             <section class="hero">
                 <div class="hero-text">
                     <div class="hero-badge">
-                        <i class="fa-solid fa-bolt"></i> HIGH-SPEED CRYPTOGRAPHIC ENGINE
+                        <i class="fa-solid fa-bolt"></i> ZERO-KNOWLEDGE VAULT ARCHITECTURE
                     </div>
-                    <h1>CloudBox Zero-Knowledge Vault</h1>
-                    <p>Streamlined client-side AES-GCM-256 file encryption with direct AWS S3 presigned endpoint transmission.</p>
+                    <h1>CloudBox Secure File Vault</h1>
+                    <p>Encrypt files locally using AES-GCM-256 and transmit securely to cloud storage buckets.</p>
                 </div>
             </section>
 
-            <!-- INFRASTRUCTURE METRICS COUNTERS -->
+            <!-- METRICS COUNTERS -->
             <section class="metrics-grid">
                 <div class="metric-card">
                     <div class="metric-header">
@@ -297,40 +326,53 @@
                 </div>
             </section>
 
-            <!-- CORE WORKFLOW PIPELINE -->
+            <!-- CORE WORKFLOW PIPELINE & STORED FILES SECTION -->
             <div class="dashboard-grid">
-                <!-- FILE SELECTION -->
-                <section class="card">
-                    <div class="card-header">
-                        <h3><i class="fa-solid fa-file-arrow-up" style="color: var(--accent-blue);"></i> Input Object</h3>
-                        <p class="card-subtitle">Select or drop a file to allocate memory buffer.</p>
-                    </div>
-                    <div id="dropZone" class="drop-zone">
-                        <input type="file" id="fileInput" hidden>
-                        <div class="drop-zone-content">
-                            <div class="drop-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
-                            <p class="drop-title">Drag & Drop Target File</p>
-                            <p class="drop-sub">or <span class="browse-link" onclick="document.getElementById('fileInput').click()">Browse System Files</span></p>
+                <!-- FILE UPLOAD & CONTROLS -->
+                <div style="display: flex; flex-direction: column; gap: 24px;">
+                    <section class="card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-file-arrow-up" style="color: var(--accent-blue);"></i> Input Object</h3>
+                            <p class="card-subtitle">Select or drop a file to allocate memory buffer.</p>
                         </div>
-                    </div>
-                </section>
+                        <div id="dropZone" class="drop-zone">
+                            <input type="file" id="fileInput" hidden>
+                            <div class="drop-zone-content">
+                                <div class="drop-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                                <p class="drop-title">Drag & Drop Target File</p>
+                                <p class="drop-sub">or <span class="browse-link" onclick="document.getElementById('fileInput').click()">Browse System Files</span></p>
+                            </div>
+                        </div>
+                    </section>
 
-                <!-- CONTROLS -->
-                <section class="card">
+                    <section class="card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-gears" style="color: var(--accent-amber);"></i> Execution Controls</h3>
+                            <p class="card-subtitle">Trigger cryptographic transformations.</p>
+                        </div>
+                        <div class="action-buttons">
+                            <button id="encryptBtn" class="btn btn-warning" disabled>
+                                <i class="fa-solid fa-lock"></i> 1. Encrypt Buffer (AES-256)
+                            </button>
+                            <button id="uploadBtn" class="btn btn-success" disabled>
+                                <i class="fa-solid fa-cloud-arrow-up"></i> 2. Transmit to AWS S3
+                            </button>
+                            <button id="decryptBtn" class="btn btn-info" disabled>
+                                <i class="fa-solid fa-lock-open"></i> 3. Restore & Download
+                            </button>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- STORED FILES SECTION (Displays stored file names only) -->
+                <section class="card" style="display: flex; flex-direction: column;">
                     <div class="card-header">
-                        <h3><i class="fa-solid fa-gears" style="color: var(--accent-amber);"></i> Execution Controls</h3>
-                        <p class="card-subtitle">Trigger cryptographic transformations.</p>
+                        <h3><i class="fa-solid fa-folder-open" style="color: var(--accent-purple);"></i> Stored Files</h3>
+                        <p class="card-subtitle">List of uploaded and encrypted files in your session.</p>
                     </div>
-                    <div class="action-buttons">
-                        <button id="encryptBtn" class="btn btn-warning" disabled>
-                            <i class="fa-solid fa-lock"></i> 1. Encrypt Buffer (AES-256)
-                        </button>
-                        <button id="uploadBtn" class="btn btn-success" disabled>
-                            <i class="fa-solid fa-cloud-arrow-up"></i> 2. Transmit to AWS S3
-                        </button>
-                        <button id="decryptBtn" class="btn btn-info" disabled>
-                            <i class="fa-solid fa-lock-open"></i> 3. Restore & Download
-                        </button>
+                    
+                    <div id="storedFilesContainer" class="files-list-container">
+                        <div class="no-files-text">No files uploaded yet. Upload a file to see its name stored here.</div>
                     </div>
                 </section>
             </div>
