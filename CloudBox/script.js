@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Load ALL historical files from MongoDB database on login
+    // Load ALL historical files from MongoDB database on page load
     loadSavedFilesFromDatabase();
 
     // Initialize drag-and-drop & file input handlers
@@ -221,7 +221,6 @@ function initFileUploadHandlers() {
 
     if (!dropZone || !fileInput) return;
 
-    // Trigger file input when clicking anywhere inside dropZone
     dropZone.addEventListener('click', (e) => {
         if (e.target !== fileInput) {
             fileInput.click();
