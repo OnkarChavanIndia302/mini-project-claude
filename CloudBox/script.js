@@ -27,13 +27,12 @@ function setStatus(message, type = 'info') {
 }
 
 // -------------------------------------------------------------
-// 1. SESSION GUARD & INITIALIZATION
+// 1. SESSION GUARD & INITIALIZATION (CLEANED)
 // -------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem('cloudbox_token');
     const user = localStorage.getItem('cloudbox_user');
 
-    // Get current page path
     const path = window.location.pathname;
     const isAuthPage = path.includes('login.html') || path.includes('register.html');
 
@@ -43,50 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // Update Avatar Initials if on Dashboard
-    const userGreeting = document.getElementById('userGreeting');
-    if (userGreeting && user) {
-        userGreeting.textContent = user.substring(0, 2).toUpperCase();
-        userGreeting.title = `Logged in as ${user}`;
-    }
-
-    // Attach Logout Click Listener
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            // Clear saved local user session data
-            localStorage.removeItem('cloudbox_token');
-            localStorage.removeItem('cloudbox_user');
-            
-            // Redirect to login page
-            window.location.href = 'login.html';
-        });
-    }
-
-    // Bind File Input and Drag/Drop events if elements are present on current page
-    initFileUploadHandlers();
-});
-
-// =============================================================
-// 1. SESSION GUARD & INITIALIZATION (FIXED)
-// =============================================================
-document.addEventListener('DOMContentLoaded', () => {
-    const token = localStorage.getItem('cloudbox_token');
-    const user = localStorage.getItem('cloudbox_user');
-
-    const path = window.location.pathname;
-    const isAuthPage = path.includes('login.html') || path.includes('register.html');
-
-    // If we are on index.html (dashboard) and there is NO token, wait briefly 
-    // or redirect to login. If there IS a token, let the user stay.
-    if (!token && !isAuthPage) {
-        // Prevent instant loop flickering by verifying if we just came from login
-        window.location.href = 'login.html';
-        return;
-    }
-
-    // If we ARE on login/register page and ALREADY have a token, auto-redirect to dashboard
+    // If already logged in and visiting login/register pages, send to dashboard
     if (token && isAuthPage) {
         window.location.href = 'index.html';
         return;
@@ -110,8 +66,49 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Bind File Input and Drag/Drop events
     initFileUploadHandlers();
 });
+
+// -------------------------------------------------------------
+// 2. AUTHENTICATION HANDLERS (Login & Register)
+// -------------------------------------------------------------
+
+// Login Form Submit Handler
+const loginForm = document.getElementById('loginForm');
+if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value;
+
+        setStatus('Authenticating credentials...', 'info');
+
+        try {
+            const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                setStatus('Login successful! Redirecting to dashboard...', 'success');
+                localStorage.setItem('cloudbox_token', data.token || 'cloudbox_session');
+                localStorage.setItem('cloudbox_user', data.username || email.split('@')[0]);
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 800);
+            } else {
+                setStatus(`Login Failed: ${data.error || 'Invalid credentials.'}`, 'error');
+                alert(data.error || 'Login Failed. User may not be registered.');
+            }
+        } catch (err) {
+            setStatus(`Connection Error: ${err.message}`, 'error');
+        }
+    });
+}
 
 // Registration Form Submit Handler
 const registerForm = document.getElementById('registerForm');
@@ -138,7 +135,7 @@ if (registerForm) {
                 alert('Account registered successfully! Please log in.');
                 setTimeout(() => {
                     window.location.href = 'login.html';
-                }, 1200);
+                }, 1000);
             } else {
                 setStatus(`Registration Failed: ${data.error || 'Could not register user.'}`, 'error');
                 alert(data.error || 'Registration failed.');
@@ -156,7 +153,6 @@ if (registerForm) {
 function initFileUploadHandlers() {
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
-    const encryptBtn = document.getElementById('encryptBtn');
 
     if (!dropZone || !fileInput) return;
 
@@ -209,7 +205,6 @@ if (encryptBtn) {
         encryptBtn.disabled = true;
 
         try {
-            // Generate 256-bit AES key
             aesKey = await crypto.subtle.generateKey(
                 { name: 'AES-GCM', length: 256 },
                 true,
