@@ -33,7 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem('cloudbox_token');
     const user = localStorage.getItem('cloudbox_user');
 
-    // Get current filename (handles both /index.html and / paths)
     const path = window.location.pathname;
     const isAuthPage = path.endsWith('login.html') || path.endsWith('register.html');
 
