@@ -107,11 +107,11 @@ app.post('/api/upload-url', async (req, res) => {
   }
 });
 
-// Example MongoDB File Schema in server.js
 const fileSchema = new mongoose.Schema({
     userId: { type: String, required: true },
     fileName: { type: String, required: true },
-    s3Key: { type: String, required: true },
+    fileKey: { type: String, required: true },
+    storageType: { type: String, enum: ['AWS_S3_NORMAL', 'CLOUDFLARE_SECURE'], required: true },
     uploadedAt: { type: Date, default: Date.now }
 });
 
