@@ -3,395 +3,332 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CloudBox Vault | Secure Cloud Infrastructure</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <title>CloudBox - Secure Multi-Cloud Storage</title>
+    <!-- FontAwesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-dark: #070a14;
-            --panel-bg: rgba(15, 23, 42, 0.75);
-            --panel-border: rgba(255, 255, 255, 0.08);
-            --panel-hover: rgba(30, 41, 59, 0.8);
+            --bg-color: #0b0f17;
+            --card-bg: rgba(22, 30, 46, 0.7);
+            --border-color: rgba(255, 255, 255, 0.1);
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
-            --accent-blue: #38bdf8;
-            --accent-indigo: #6366f1;
-            --accent-purple: #a855f7;
-            --accent-emerald: #10b981;
-            --accent-amber: #f59e0b;
-            --glow-blue: rgba(56, 189, 248, 0.15);
+            --accent-s3: #ff9900;
+            --accent-r2: #38bdf8;
+            --accent-green: #10b981;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
-        
-        body { 
-            background: var(--bg-dark); 
-            color: var(--text-main); 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
             min-height: 100vh;
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.1) 0px, transparent 50%);
-            background-attachment: fixed;
-            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
-        .app-container { display: flex; min-height: 100vh; }
-
-        /* SIDEBAR */
-        .sidebar { 
-            width: 270px; 
-            background: rgba(10, 15, 30, 0.85); 
-            backdrop-filter: blur(20px);
-            border-right: 1px solid var(--panel-border); 
-            padding: 32px 20px; 
-            display: flex; 
-            flex-direction: column; 
-            flex-shrink: 0; 
+        /* Navbar Styling */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 2rem;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
         }
 
-        .brand { display: flex; align-items: center; gap: 14px; padding: 0 8px; margin-bottom: 40px; }
-        .brand-icon { 
-            width: 44px; height: 44px; border-radius: 14px; 
-            background: linear-gradient(135deg, var(--accent-indigo), var(--accent-purple)); 
-            display: grid; place-items: center; font-size: 20px; color: #fff;
-            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4); 
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-main);
         }
-        .brand-name { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
-        .brand-name span { color: var(--accent-blue); }
 
-        .nav-label { color: #475569; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; padding: 0 12px; margin-bottom: 12px; text-transform: uppercase; }
-        .nav-item { 
-            display: flex; align-items: center; gap: 14px; padding: 13px 16px; 
-            border-radius: 12px; color: var(--text-muted); font-size: 14px; font-weight: 500; 
-            margin-bottom: 6px; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; 
+        .user-nav {
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
-        .nav-item i { width: 20px; font-size: 16px; text-align: center; }
-        .nav-item.active { 
-            background: linear-gradient(90deg, rgba(99, 102, 241, 0.18), rgba(99, 102, 241, 0.03)); 
-            color: var(--accent-blue); border: 1px solid rgba(99, 102, 241, 0.25); 
-        }
-        .nav-item:hover:not(.active) { background: var(--panel-hover); color: var(--text-main); transform: translateX(3px); }
 
-        .sidebar-bottom { margin-top: auto; }
-        .security-card { 
-            background: linear-gradient(145deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.8)); 
-            border: 1px solid rgba(56, 189, 248, 0.15); padding: 20px; border-radius: 16px; 
+        .avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: white;
+            font-size: 14px;
+        }
+
+        .logout-btn {
+            background: transparent;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #ef4444;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        /* Container Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 25px;
+            max-width: 1300px;
+            margin: 30px auto;
+            width: 90%;
+            flex: 1;
+        }
+
+        @media (max-width: 968px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
             backdrop-filter: blur(10px);
         }
-        .security-card i { color: var(--accent-blue); font-size: 22px; margin-bottom: 12px; }
-        .security-card h4 { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
-        .security-card p { font-size: 11px; color: var(--text-muted); line-height: 1.6; }
 
-        /* MAIN CONTENT */
-        .main-content { flex: 1; min-width: 0; padding: 36px 44px; display: flex; flex-direction: column; gap: 28px; }
-
-        .topbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
-        .page-title h2 { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
-        .page-location { color: var(--text-muted); font-size: 13px; margin-bottom: 4px; }
-        .page-location span { color: var(--accent-blue); font-weight: 600; }
-
-        .profile-area { display: flex; align-items: center; gap: 16px; }
-        .online-status { 
-            display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600;
-            color: var(--accent-emerald); background: rgba(16, 185, 129, 0.1); 
-            padding: 8px 16px; border-radius: 30px; border: 1px solid rgba(16, 185, 129, 0.2);
-        }
-        .online-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-emerald); box-shadow: 0 0 10px var(--accent-emerald); }
-        .avatar { 
-            width: 42px; height: 42px; border-radius: 12px; 
-            background: linear-gradient(135deg, var(--accent-blue), var(--accent-indigo)); 
-            display: grid; place-items: center; font-weight: 800; color: #fff; font-size: 14px;
-            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
-        }
-        .btn-logout { 
-            background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.2); 
-            padding: 10px 18px; border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 600; 
-            transition: all 0.2s; display: flex; align-items: center; gap: 8px; 
-        }
-        .btn-logout:hover { background: #ef4444; color: #fff; border-color: #ef4444; transform: translateY(-1px); }
-
-        /* HERO STATS BANNER */
-        .hero { 
-            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9)); 
-            border: 1px solid var(--panel-border); border-radius: 20px; padding: 32px 40px; 
-            display: flex; justify-content: space-between; align-items: center;
-            backdrop-filter: blur(15px); box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-            position: relative; overflow: hidden;
-        }
-        .hero::before {
-            content: ''; position: absolute; top: -50%; right: -10%; width: 300px; height: 300px;
-            background: radial-gradient(circle, var(--glow-blue) 0%, transparent 70%); pointer-events: none;
-        }
-        .hero-text h1 { font-size: 24px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.5px; }
-        .hero-text p { color: var(--text-muted); font-size: 13px; line-height: 1.6; max-width: 520px; }
-        .hero-badge { 
-            display: inline-flex; align-items: center; gap: 6px; background: rgba(56, 189, 248, 0.1); 
-            color: var(--accent-blue); border: 1px solid rgba(56, 189, 248, 0.2); padding: 6px 12px; 
-            border-radius: 20px; font-size: 11px; font-weight: 700; margin-bottom: 12px; 
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        /* METRICS COUNTER GRID */
-        .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-        .metric-card { 
-            background: var(--panel-bg); border: 1px solid var(--panel-border); 
-            padding: 22px 24px; border-radius: 16px; backdrop-filter: blur(10px); 
-            transition: all 0.25s ease;
+        /* Drag & Drop Zone */
+        .drop-zone {
+            border: 2px dashed rgba(99, 102, 241, 0.4);
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            background: rgba(15, 23, 42, 0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
-        .metric-card:hover { border-color: rgba(99, 102, 241, 0.3); transform: translateY(-3px); }
-        .metric-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-        .metric-icon { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; font-size: 16px; }
-        .icon-blue { background: rgba(56, 189, 248, 0.12); color: var(--accent-blue); }
-        .icon-purple { background: rgba(168, 85, 247, 0.12); color: var(--accent-purple); }
-        .icon-emerald { background: rgba(16, 185, 129, 0.12); color: var(--accent-emerald); }
-        .metric-value { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; }
-        .metric-label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
 
-        /* DASHBOARD GRID PIPELINE & STORED FILES */
-        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-        .card { 
-            background: var(--panel-bg); border: 1px solid var(--panel-border); 
-            border-radius: 20px; padding: 28px; backdrop-filter: blur(15px); 
+        .drop-zone:hover {
+            border-color: #6366f1;
+            background: rgba(99, 102, 241, 0.05);
         }
-        .card-header { margin-bottom: 20px; }
-        .card-header h3 { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
-        .card-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
 
-        /* STORED FILES LIST CONTAINER */
-        .files-list-container {
-            max-height: 250px;
-            overflow-y: auto;
+        .drop-icon {
+            font-size: 40px;
+            color: #6366f1;
+            margin-bottom: 15px;
+        }
+
+        /* Upload Modes Grid */
+        .upload-options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .option-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: left;
+            transition: all 0.3s ease;
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-s3 {
+            background: rgba(255, 153, 0, 0.15);
+            color: var(--accent-s3);
+            border: 1px solid rgba(255, 153, 0, 0.4);
+        }
+
+        .btn-s3:hover:not(:disabled) {
+            background: var(--accent-s3);
+            color: #000;
+        }
+
+        .btn-r2 {
+            background: rgba(56, 189, 248, 0.15);
+            color: var(--accent-r2);
+            border: 1px solid rgba(56, 189, 248, 0.4);
+        }
+
+        .btn-r2:hover:not(:disabled) {
+            background: var(--accent-r2);
+            color: #000;
+        }
+
+        .btn-action:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Terminal Output Box */
+        .terminal-box {
+            background: #050811;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 14px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #38bdf8;
+            margin-top: 20px;
+            min-height: 50px;
+        }
+
+        /* Stored Files Sidebar */
+        .stored-files-list {
             display: flex;
             flex-direction: column;
             gap: 10px;
-            padding-right: 4px;
+            max-height: 480px;
+            overflow-y: auto;
         }
+
         .file-item-row {
-            background: rgba(30, 41, 59, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 12px 16px;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border-color);
             border-radius: 10px;
+            padding: 12px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            font-size: 13px;
-        }
-        .file-item-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            word-break: break-all;
-        }
-        .file-item-info i {
-            color: var(--accent-blue);
-        }
-        .no-files-text {
-            color: var(--text-muted);
-            font-size: 13px;
-            text-align: center;
-            padding: 30px;
-            font-style: italic;
         }
 
-        /* DROPZONE */
-        .drop-zone { 
-            border: 2px dashed rgba(99, 102, 241, 0.3); border-radius: 16px; 
-            background: rgba(15, 23, 42, 0.5); min-height: 190px; 
-            display: flex; align-items: center; justify-content: center; 
-            text-align: center; padding: 20px; transition: all 0.3s ease; cursor: pointer; 
-        }
-        .drop-zone:hover { border-color: var(--accent-blue); background: rgba(56, 189, 248, 0.04); }
-        .drop-icon { 
-            width: 50px; height: 50px; border-radius: 14px; background: rgba(99, 102, 241, 0.12); 
-            display: grid; place-items: center; margin: 0 auto 12px; font-size: 22px; color: var(--accent-blue); 
-        }
-        .drop-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
-        .drop-sub { color: var(--text-muted); font-size: 11px; }
-        .browse-link { color: var(--accent-blue); font-weight: 700; cursor: pointer; text-decoration: underline; }
-
-        /* PIPELINE ACTION BUTTONS */
-        .action-buttons { display: flex; flex-direction: column; gap: 10px; }
-        .btn { 
-            display: flex; align-items: center; justify-content: flex-start; gap: 12px; 
-            padding: 13px 18px; border: 1px solid transparent; border-radius: 12px; 
-            font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.25s ease; color: #fff; 
-        }
-        .btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none !important; }
-        .btn-warning { background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.3); color: #fbbf24; }
-        .btn-success { background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.3); color: #34d399; }
-        .btn-info { background: rgba(56, 189, 248, 0.12); border-color: rgba(56, 189, 248, 0.3); color: #38bdf8; }
-
-        /* TERMINAL CONSOLE */
-        .audit-terminal { 
-            background: #050811; border: 1px solid var(--panel-border); 
-            border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.4); 
-        }
-        .terminal-header { 
-            background: rgba(15, 23, 42, 0.9); padding: 14px 20px; 
-            display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--panel-border); 
-        }
-        .dot { width: 10px; height: 10px; border-radius: 50%; }
-        .red { background: #ef4444; } .yellow { background: #f59e0b; } .green { background: #10b981; }
-        .terminal-title { font-size: 12px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; margin-left: 8px; font-weight: 500; }
-        .terminal-body { 
-            padding: 20px; font-family: 'JetBrains Mono', monospace; font-size: 13px; 
-            color: #38bdf8; min-height: 80px; line-height: 1.7; word-break: break-all;
+        .badge-s3 {
+            font-size: 10px;
+            color: var(--accent-s3);
+            background: rgba(255, 153, 0, 0.1);
+            padding: 3px 8px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            font-weight: 700;
         }
 
-        .footer { text-align: center; color: #475569; font-size: 12px; padding: 8px; }
+        .badge-r2 {
+            font-size: 10px;
+            color: var(--accent-r2);
+            background: rgba(56, 189, 248, 0.1);
+            padding: 3px 8px;
+            border-radius: 12px;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            font-weight: 700;
+        }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <!-- SIDEBAR (Cleaned up: Secure Storage, Key Management, and AWS Direct Transfer removed) -->
-        <aside class="sidebar">
-            <div class="brand">
-                <div class="brand-icon">
-                    <i class="fa-solid fa-shield-halved"></i>
-                </div>
-                <div class="brand-name">CloudBox <span>Vault</span></div>
+
+    <!-- Header Navbar -->
+    <nav class="navbar">
+        <div class="logo">
+            <i class="fa-solid fa-box-archive" style="color: #6366f1;"></i> CloudBox
+        </div>
+        <div class="user-nav">
+            <div class="avatar" id="userGreeting" title="Logged in user">U</div>
+            <button class="logout-btn" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+        </div>
+    </nav>
+
+    <!-- Main Dashboard Workspace -->
+    <div class="dashboard-grid">
+        
+        <!-- Upload Workspace Card -->
+        <div class="card">
+            <div class="card-title">
+                <i class="fa-solid fa-cloud-arrow-up" style="color: #6366f1;"></i> File Storage Workstation
             </div>
 
-            <div class="nav-label">WORKSPACE</div>
-            <div class="nav-item active"><i class="fa-solid fa-chart-pie"></i> Dashboard</div>
-            <div class="nav-item"><i class="fa-solid fa-folder-open"></i> Stored Files</div>
-
-            <div class="nav-label" style="margin-top: 36px;">SYSTEM</div>
-            <div class="nav-item"><i class="fa-solid fa-sliders"></i> Engine Settings</div>
-            <div class="nav-item"><i class="fa-solid fa-terminal"></i> Audit Logs</div>
-
-            <div class="sidebar-bottom">
-                <div class="security-card">
-                    <i class="fa-solid fa-user-shield"></i>
-                    <h4>AES-256 Enabled</h4>
-                    <p>Client-side cryptographic chunking verified for secure cloud storage.</p>
-                </div>
+            <!-- Drag & Drop Box -->
+            <div class="drop-zone" id="dropZone">
+                <i class="fa-solid fa-file-circle-plus drop-icon"></i>
+                <p style="font-weight: 600; font-size: 15px;">Click or Drag & Drop file here</p>
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Supports all file formats (Max 50 MB)</p>
+                <input type="file" id="fileInput" style="display: none;">
             </div>
-        </aside>
 
-        <!-- MAIN WORKSPACE -->
-        <main class="main-content">
-            <!-- TOPBAR HEADER -->
-            <header class="topbar">
-                <div class="page-title">
-                    <div class="page-location">Infrastructure / <span>Vault Control</span></div>
-                    <h2>Engine Overview</h2>
-                </div>
-                <div class="profile-area">
-                    <div class="online-status">
-                        <span class="online-dot"></span> Cluster Active
+            <!-- Two Upload Modes Buttons -->
+            <div class="upload-options-grid">
+                
+                <!-- AWS S3 Normal Mode -->
+                <div class="option-card">
+                    <div style="font-weight: 600; font-size: 13px; color: var(--accent-s3);">
+                        <i class="fa-brands fa-aws"></i> Standard AWS S3
                     </div>
-                    <div id="userGreeting" class="avatar">CB</div>
-                    <button id="logoutBtn" class="btn-logout">
-                        <i class="fa-solid fa-power-off"></i> Logout
+                    <p style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">Direct upload without encryption. Fast & standard cloud storage.</p>
+                    <button class="btn-action btn-s3" id="uploadS3Btn" disabled>
+                        <i class="fa-solid fa-paper-plane"></i> Upload to S3
                     </button>
                 </div>
-            </header>
 
-            <!-- HERO BANNER (Cleaned up subtitle text) -->
-            <section class="hero">
-                <div class="hero-text">
-                    <div class="hero-badge">
-                        <i class="fa-solid fa-bolt"></i> ZERO-KNOWLEDGE VAULT ARCHITECTURE
+                <!-- Cloudflare R2 Encrypted Mode -->
+                <div class="option-card">
+                    <div style="font-weight: 600; font-size: 13px; color: var(--accent-r2);">
+                        <i class="fa-solid fa-shield-halved"></i> Cloudflare R2 Vault
                     </div>
-                    <h1>CloudBox Secure File Vault</h1>
-                    <p>Encrypt files locally using AES-GCM-256 and transmit securely to cloud storage buckets.</p>
-                </div>
-            </section>
-
-            <!-- METRICS COUNTERS -->
-            <section class="metrics-grid">
-                <div class="metric-card">
-                    <div class="metric-header">
-                        <div class="metric-icon icon-blue"><i class="fa-solid fa-shield"></i></div>
-                        <span style="font-size:11px; color:var(--accent-emerald); font-weight:700;">ACTIVE</span>
-                    </div>
-                    <div class="metric-value">AES-256-GCM</div>
-                    <div class="metric-label">Client Cryptography</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-header">
-                        <div class="metric-icon icon-purple"><i class="fa-solid fa-box-archive"></i></div>
-                        <span style="font-size:11px; color:var(--accent-blue); font-weight:700;">S3 DIRECT</span>
-                    </div>
-                    <div class="metric-value">Presigned PUT</div>
-                    <div class="metric-label">Transfer Pipeline</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-header">
-                        <div class="metric-icon icon-emerald"><i class="fa-solid fa-server"></i></div>
-                        <span style="font-size:11px; color:var(--accent-emerald); font-weight:700;">HEALTHY</span>
-                    </div>
-                    <div class="metric-value">Render Live</div>
-                    <div class="metric-label">Backend Node State</div>
-                </div>
-            </section>
-
-            <!-- CORE WORKFLOW PIPELINE & STORED FILES SECTION -->
-            <div class="dashboard-grid">
-                <!-- FILE UPLOAD & CONTROLS -->
-                <div style="display: flex; flex-direction: column; gap: 24px;">
-                    <section class="card">
-                        <div class="card-header">
-                            <h3><i class="fa-solid fa-file-arrow-up" style="color: var(--accent-blue);"></i> Input Object</h3>
-                            <p class="card-subtitle">Select or drop a file to allocate memory buffer.</p>
-                        </div>
-                        <div id="dropZone" class="drop-zone">
-                            <input type="file" id="fileInput" hidden>
-                            <div class="drop-zone-content">
-                                <div class="drop-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
-                                <p class="drop-title">Drag & Drop Target File</p>
-                                <p class="drop-sub">or <span class="browse-link" onclick="document.getElementById('fileInput').click()">Browse System Files</span></p>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section class="card">
-                        <div class="card-header">
-                            <h3><i class="fa-solid fa-gears" style="color: var(--accent-amber);"></i> Execution Controls</h3>
-                            <p class="card-subtitle">Trigger cryptographic transformations.</p>
-                        </div>
-                        <div class="action-buttons">
-                            <button id="encryptBtn" class="btn btn-warning" disabled>
-                                <i class="fa-solid fa-lock"></i> 1. Encrypt Buffer (AES-256)
-                            </button>
-                            <button id="uploadBtn" class="btn btn-success" disabled>
-                                <i class="fa-solid fa-cloud-arrow-up"></i> 2. Transmit to AWS S3
-                            </button>
-                            <button id="decryptBtn" class="btn btn-info" disabled>
-                                <i class="fa-solid fa-lock-open"></i> 3. Restore & Download
-                            </button>
-                        </div>
-                    </section>
+                    <p style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">AES-256 client-side encrypted storage. High security & zero download cost.</p>
+                    <button class="btn-action btn-r2" id="uploadR2Btn" disabled>
+                        <i class="fa-solid fa-lock"></i> Encrypt & Upload R2
+                    </button>
                 </div>
 
-                <!-- STORED FILES SECTION (Displays stored file names only) -->
-                <section class="card" style="display: flex; flex-direction: column;">
-                    <div class="card-header">
-                        <h3><i class="fa-solid fa-folder-open" style="color: var(--accent-purple);"></i> Stored Files</h3>
-                        <p class="card-subtitle">List of uploaded and encrypted files in your session.</p>
-                    </div>
-                    
-                    <div id="storedFilesContainer" class="files-list-container">
-                        <div class="no-files-text">No files uploaded yet. Upload a file to see its name stored here.</div>
-                    </div>
-                </section>
             </div>
 
-            <!-- SYSTEM CONSOLE LOGS -->
-            <section class="audit-terminal">
-                <div class="terminal-header">
-                    <span class="dot red"></span>
-                    <span class="dot yellow"></span>
-                    <span class="dot green"></span>
-                    <span class="terminal-title">CLOUDBOX // REALTIME INFRASTRUCTURE TERMINAL</span>
-                </div>
-                <div id="status" class="terminal-body">[SYSTEM INITIALIZED] Awaiting object payload selection...</div>
-            </section>
+            <!-- Status Terminal Console -->
+            <div class="terminal-box" id="status">
+                System Status: Ready. Please select a file to begin upload...
+            </div>
+        </div>
 
-            <footer class="footer">
-                CloudBox Vault Platform Architecture · Enterprise Security Build 2026
-            </footer>
-        </main>
+        <!-- Saved Files Sidebar -->
+        <div class="card">
+            <div class="card-title">
+                <i class="fa-solid fa-database" style="color: #38bdf8;"></i> Stored Cloud Files
+            </div>
+
+            <div class="stored-files-list" id="storedFilesContainer">
+                <p class="no-files-text" style="font-size: 12px; color: var(--text-muted); text-align: center; margin-top: 20px;">No files stored yet.</p>
+            </div>
+        </div>
+
     </div>
 
     <script src="script.js"></script>
