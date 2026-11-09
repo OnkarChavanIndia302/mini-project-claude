@@ -1,19 +1,15 @@
 // =============================================================
-// CloudBox - Modern Secure File Management
-// Deployed Live Backend Configuration & Client Storage
+// CloudBox - Modern Multi-Cloud File Manager
+// AWS S3 (Standard) & Cloudflare R2 (Encrypted Vault)
 // =============================================================
 
 const BACKEND_URL = 'https://mini-project-claude.onrender.com';
 
-// Global state variables for Web Crypto API & S3 payload
-let aesKey = null;
-let encryptedBlocks = [];
-let fileMetadata = null;
 let selectedFile = null;
 
 // Helper function to write messages to the terminal console
 function setStatus(message, type = 'info') {
-    const statusBox = document.getElementById('status') || document.getElementById('authError');
+    const statusBox = document.getElementById('status');
     if (!statusBox) return;
     
     statusBox.textContent = message;
@@ -30,7 +26,7 @@ function setStatus(message, type = 'info') {
 // -------------------------------------------------------------
 // STORED FILES MANAGER (UI RENDERER & DATABASE SYNC)
 // -------------------------------------------------------------
-function addStoredFileToList(fileName, timestampStr = null) {
+function addStoredFileToList(fileName, storageType = 'AWS_S3_NORMAL', timestampStr = null) {
     if (!fileName) return;
 
     const container = document.getElementById('storedFilesContainer');
@@ -51,26 +47,29 @@ function addStoredFileToList(fileName, timestampStr = null) {
         hour12: true
     });
 
-    // Check if filename already exists in the list UI
-    const existingNames = Array.from(container.querySelectorAll('.file-name-text')).map(el => el.textContent.trim());
-    if (!existingNames.includes(fileName)) {
-        const row = document.createElement('div');
-        row.className = 'file-item-row';
-        row.innerHTML = `
-            <div class="file-item-info">
-                <i class="fa-solid fa-file-shield" style="color: #38bdf8; margin-right: 8px;"></i>
-                <div>
-                    <div class="file-name-text" style="font-size: 13px; font-weight: 600; color: #f8fafc;">${fileName}</div>
-                    <div style="font-size: 10px; color: #94a3b8; margin-top: 2px;">
-                        <i class="fa-regular fa-clock" style="font-size: 9px; margin-right: 4px;"></i>${displayTime}
-                    </div>
+    const isSecure = storageType === 'CLOUDFLARE_SECURE';
+    const badgeHtml = isSecure 
+        ? `<span class="badge-r2"><i class="fa-solid fa-lock"></i> SECURED (R2)</span>`
+        : `<span class="badge-s3"><i class="fa-brands fa-aws"></i> STANDARD (S3)</span>`;
+
+    const iconColor = isSecure ? '#38bdf8' : '#ff9900';
+
+    const row = document.createElement('div');
+    row.className = 'file-item-row';
+    row.innerHTML = `
+        <div class="file-item-info" style="display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid ${isSecure ? 'fa-shield-halved' : 'fa-file-lines'}" style="color: ${iconColor}; font-size: 16px;"></i>
+            <div>
+                <div class="file-name-text" style="font-size: 13px; font-weight: 600; color: #f8fafc;">${fileName}</div>
+                <div style="font-size: 10px; color: #94a3b8; margin-top: 2px;">
+                    <i class="fa-regular fa-clock" style="font-size: 9px; margin-right: 4px;"></i>${displayTime}
                 </div>
             </div>
-            <span style="font-size: 11px; color: #10b981; font-weight: 700; background: rgba(16, 185, 129, 0.1); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.2);">SECURED</span>
-        `;
-        // Put newest file at the top
-        container.insertBefore(row, container.firstChild);
-    }
+        </div>
+        ${badgeHtml}
+    `;
+    
+    container.insertBefore(row, container.firstChild);
 }
 
 // Fetch all historical uploaded files directly from MongoDB Atlas server
@@ -83,7 +82,9 @@ async function loadSavedFilesFromDatabase() {
         const data = await response.json();
 
         if (response.ok && data.files) {
-            // Render historical files from oldest to newest so newest appears on top
+            const container = document.getElementById('storedFilesContainer');
+            if (container) container.innerHTML = '';
+
             [...data.files].reverse().forEach(file => {
                 const formattedTime = new Date(file.uploadedAt).toLocaleString('en-US', {
                     month: 'short',
@@ -93,7 +94,7 @@ async function loadSavedFilesFromDatabase() {
                     minute: '2-digit',
                     hour12: true
                 });
-                addStoredFileToList(file.fileName, formattedTime);
+                addStoredFileToList(file.fileName, file.storageType, formattedTime);
             });
         }
     } catch (err) {
@@ -102,7 +103,7 @@ async function loadSavedFilesFromDatabase() {
 }
 
 // Save uploaded file metadata to MongoDB server permanently
-async function recordFileUploadInDatabase(fileName, s3Key) {
+async function recordFileUploadInDatabase(fileName, s3Key, storageType) {
     const userEmail = localStorage.getItem('cloudbox_user');
     if (!userEmail) return;
 
@@ -113,7 +114,8 @@ async function recordFileUploadInDatabase(fileName, s3Key) {
             body: JSON.stringify({
                 email: userEmail,
                 fileName: fileName,
-                s3Key: s3Key
+                s3Key: s3Key,
+                storageType: storageType
             })
         });
     } catch (err) {
@@ -149,8 +151,6 @@ document.addEventListener('DOMContentLoaded', () => {
         let initials = parts[0].charAt(0).toUpperCase();
         if (parts.length > 1) {
             initials += parts[parts.length - 1].charAt(0).toUpperCase();
-        } else if (parts[0].length > 1) {
-            initials += parts[0].charAt(1).toUpperCase();
         }
         userGreeting.textContent = initials;
         userGreeting.title = `Logged in as ${user}`;
@@ -167,53 +167,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Load ALL historical files from MongoDB database on page load
+    // Load saved files from MongoDB database
     loadSavedFilesFromDatabase();
 
-    // Initialize drag-and-drop & file input handlers
+    // Initialize file upload handlers
     initFileUploadHandlers();
 });
 
 // -------------------------------------------------------------
-// 2. AUTHENTICATION HANDLERS
-// -------------------------------------------------------------
-const loginForm = document.getElementById('loginForm');
-if (loginForm) {
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const emailInput = document.getElementById('loginEmail') || document.getElementById('email');
-        const passwordInput = document.getElementById('loginPassword') || document.getElementById('password');
-
-        const email = emailInput ? emailInput.value.trim() : '';
-        const password = passwordInput ? passwordInput.value : '';
-
-        setStatus('Authenticating credentials...', 'info');
-
-        try {
-            const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
-            });
-
-            const data = await response.json();
-
-            if (response.ok && data.success) {
-                setStatus('Login successful! Redirecting...', 'success');
-                localStorage.setItem('cloudbox_token', data.token || 'cloudbox_session_active');
-                localStorage.setItem('cloudbox_user', email);
-                setTimeout(() => { window.location.href = 'index.html'; }, 800);
-            } else {
-                setStatus(`Login Failed: ${data.error || 'Invalid email or password.'}`, 'error');
-            }
-        } catch (err) {
-            setStatus(`Connection Error: ${err.message}`, 'error');
-        }
-    });
-}
-
-// -------------------------------------------------------------
-// 3. FILE SELECTION HANDLERS
+// 2. FILE SELECTION HANDLERS
 // -------------------------------------------------------------
 function initFileUploadHandlers() {
     const dropZone = document.getElementById('dropZone');
@@ -235,16 +197,16 @@ function initFileUploadHandlers() {
 
     dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
-        dropZone.style.borderColor = '#38bdf8';
+        dropZone.style.borderColor = '#6366f1';
     });
 
     dropZone.addEventListener('dragleave', () => {
-        dropZone.style.borderColor = 'rgba(99,102,241,0.3)';
+        dropZone.style.borderColor = 'rgba(99,102,241,0.4)';
     });
 
     dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
-        dropZone.style.borderColor = 'rgba(99,102,241,0.3)';
+        dropZone.style.borderColor = 'rgba(99,102,241,0.4)';
         if (e.dataTransfer.files.length) {
             handleFileSelection(e.dataTransfer.files[0]);
         }
@@ -253,167 +215,140 @@ function initFileUploadHandlers() {
 
 function handleFileSelection(file) {
     if (!file) return;
+
+    // Check size limit (Max 50 MB)
+    const maxAllowedSize = 50 * 1024 * 1024;
+    if (file.size > maxAllowedSize) {
+        setStatus(`[ERROR] File exceeds 50 MB limit!`, 'error');
+        return;
+    }
+
     selectedFile = file;
-    const encryptBtn = document.getElementById('encryptBtn');
-    if (encryptBtn) encryptBtn.disabled = false;
-    setStatus(`[FILE LOADED] ${file.name} (${(file.size / 1024).toFixed(2)} KB). Click "1. Encrypt Buffer (AES-256)" to proceed.`, 'success');
+
+    // Enable both mode buttons
+    const uploadS3Btn = document.getElementById('uploadS3Btn');
+    const uploadR2Btn = document.getElementById('uploadR2Btn');
+    if (uploadS3Btn) uploadS3Btn.disabled = false;
+    if (uploadR2Btn) uploadR2Btn.disabled = false;
+
+    setStatus(`[FILE LOADED] ${file.name} (${(file.size / 1024).toFixed(2)} KB). Choose upload destination below.`, 'success');
 }
 
 // -------------------------------------------------------------
-// 4. CLIENT-SIDE ENCRYPTION PIPELINE
+// 3. OPTION A: AWS S3 STANDARD UPLOAD (WITHOUT ENCRYPTION)
 // -------------------------------------------------------------
-const encryptBtn = document.getElementById('encryptBtn');
-if (encryptBtn) {
-    encryptBtn.addEventListener('click', async () => {
+const uploadS3Btn = document.getElementById('uploadS3Btn');
+if (uploadS3Btn) {
+    uploadS3Btn.addEventListener('click', async () => {
         if (!selectedFile) return;
 
-        const uploadBtn = document.getElementById('uploadBtn');
-        const decryptBtn = document.getElementById('decryptBtn');
-
-        setStatus('[ENCRYPTING] Processing file using Web Crypto API (AES-256-GCM)...', 'info');
-        encryptBtn.disabled = true;
-
-        try {
-            aesKey = await crypto.subtle.generateKey(
-                { name: 'AES-GCM', length: 256 },
-                true,
-                ['encrypt', 'decrypt']
-            );
-
-            const fileBuffer = await selectedFile.arrayBuffer();
-            const chunkSize = 1024 * 1024;
-            encryptedBlocks = [];
-
-            for (let offset = 0; offset < fileBuffer.byteLength; offset += chunkSize) {
-                const chunk = fileBuffer.slice(offset, offset + chunkSize);
-                const iv = crypto.getRandomValues(new Uint8Array(12));
-                const encryptedChunk = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, aesKey, chunk);
-                encryptedBlocks.push({
-                    iv: Array.from(iv),
-                    data: Array.from(new Uint8Array(encryptedChunk))
-                });
-            }
-
-            fileMetadata = {
-                name: selectedFile.name,
-                size: selectedFile.size,
-                type: selectedFile.type,
-                totalBlocks: encryptedBlocks.length,
-                timestamp: new Date().toISOString()
-            };
-
-            setStatus('[ENCRYPTION COMPLETE] Encrypted payload ready for AWS transmission.', 'success');
-            if (uploadBtn) uploadBtn.disabled = false;
-            if (decryptBtn) decryptBtn.disabled = false;
-
-        } catch (err) {
-            setStatus(`[ENCRYPTION ERROR] ${err.message}`, 'error');
-        } finally {
-            encryptBtn.disabled = false;
-        }
-    });
-}
-
-// -------------------------------------------------------------
-// 5. AWS S3 UPLOAD & MONGO DB RECORDING
-// -------------------------------------------------------------
-const uploadBtn = document.getElementById('uploadBtn');
-if (uploadBtn) {
-    uploadBtn.addEventListener('click', async () => {
-        if (!encryptedBlocks.length || !fileMetadata) {
-            setStatus('Error: No encrypted payload ready.', 'error');
-            return;
-        }
-
-        const uploadedName = fileMetadata.name;
-        uploadBtn.disabled = true;
-        setStatus('[CONNECTING] Requesting presigned URL from Render backend...', 'info');
+        uploadS3Btn.disabled = true;
+        setStatus('[AWS S3] Requesting presigned upload URL...', 'info');
 
         try {
             const response = await fetch(`${BACKEND_URL}/api/upload-url`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    fileName: uploadedName,
-                    contentType: 'application/json'
+                    fileName: selectedFile.name,
+                    contentType: selectedFile.type || 'application/octet-stream'
                 })
             });
 
             const data = await response.json();
             if (!response.ok || !data.uploadUrl) {
-                throw new Error(data.error || 'Failed to get presigned upload URL.');
+                throw new Error(data.error || 'Failed to get S3 URL.');
             }
 
-            const payload = { metadata: fileMetadata, blocks: encryptedBlocks };
+            setStatus('[AWS S3] Transmitting file directly to AWS S3 bucket...', 'info');
 
-            setStatus('[UPLOADING] Transmitting payload to AWS S3 bucket...', 'info');
             const s3Response = await fetch(data.uploadUrl, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                headers: { 'Content-Type': selectedFile.type || 'application/octet-stream' },
+                body: selectedFile
             });
 
             if (s3Response.ok) {
-                setStatus(`[SUCCESS] Object stored safely in AWS S3! Key: ${data.key}`, 'success');
+                setStatus(`[SUCCESS] Stored on AWS S3! Key: ${data.key}`, 'success');
                 
-                // 1. Update UI immediately
-                addStoredFileToList(uploadedName);
+                // Add to UI
+                addStoredFileToList(selectedFile.name, 'AWS_S3_NORMAL');
 
-                // 2. Save metadata in MongoDB Atlas permanently
-                await recordFileUploadInDatabase(uploadedName, data.key);
+                // Save in MongoDB Atlas
+                await recordFileUploadInDatabase(selectedFile.name, data.key, 'AWS_S3_NORMAL');
             } else {
-                throw new Error('S3 PUT upload request failed.');
+                throw new Error('S3 Direct PUT upload failed.');
             }
         } catch (err) {
-            setStatus(`[UPLOAD ERROR] ${err.message}`, 'error');
+            setStatus(`[S3 ERROR] ${err.message}`, 'error');
         } finally {
-            uploadBtn.disabled = false;
+            uploadS3Btn.disabled = false;
         }
     });
 }
 
 // -------------------------------------------------------------
-// 6. CLIENT DECRYPTION & LOCAL FILE RESTORE
+// 4. OPTION B: CLOUDFLARE R2 SECURE VAULT (AES-256 ENCRYPTED)
 // -------------------------------------------------------------
-const decryptBtn = document.getElementById('decryptBtn');
-if (decryptBtn) {
-    decryptBtn.addEventListener('click', async () => {
-        if (!aesKey || !encryptedBlocks.length) {
-            setStatus('Error: Missing AES key or block data.', 'error');
-            return;
-        }
+const uploadR2Btn = document.getElementById('uploadR2Btn');
+if (uploadR2Btn) {
+    uploadR2Btn.addEventListener('click', async () => {
+        if (!selectedFile) return;
 
-        decryptBtn.disabled = true;
-        setStatus('[DECRYPTING] Restoring file chunks & verifying signature...', 'info');
+        uploadR2Btn.disabled = true;
+        setStatus('[ENCRYPTING] Encrypting file using Web Crypto API (AES-256)...', 'info');
 
         try {
-            const decryptedParts = [];
-            for (const block of encryptedBlocks) {
-                const decryptedBuffer = await crypto.subtle.decrypt(
-                    { name: 'AES-GCM', iv: new Uint8Array(block.iv) },
-                    aesKey,
-                    new Uint8Array(block.data)
-                );
-                decryptedParts.push(decryptedBuffer);
-            }
+            // Generate AES-256 Key
+            const aesKey = await crypto.subtle.generateKey(
+                { name: 'AES-GCM', length: 256 },
+                true,
+                ['encrypt', 'decrypt']
+            );
 
-            const restoredBlob = new Blob(decryptedParts, {
-                type: fileMetadata.type || 'application/octet-stream'
+            const fileBuffer = await selectedFile.arrayBuffer();
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            const encryptedBuffer = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, aesKey, fileBuffer);
+
+            setStatus('[R2 VAULT] Transmitting encrypted payload to Cloudflare R2...', 'info');
+
+            // Send upload request to backend
+            const response = await fetch(`${BACKEND_URL}/api/upload-url`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    fileName: `encrypted_${selectedFile.name}`,
+                    contentType: 'application/octet-stream'
+                })
             });
 
-            const url = URL.createObjectURL(restoredBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `restored_${fileMetadata.name}`;
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
+            const data = await response.json();
+            if (!response.ok || !data.uploadUrl) {
+                throw new Error(data.error || 'Failed to get upload URL.');
+            }
 
-            setStatus(`[DECRYPTION SUCCESS] Restored file: restored_${fileMetadata.name}`, 'success');
+            const r2Response = await fetch(data.uploadUrl, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/octet-stream' },
+                body: encryptedBuffer
+            });
+
+            if (r2Response.ok) {
+                setStatus(`[SUCCESS] Ultra-Secure Payload Stored in R2 Vault! Key: ${data.key}`, 'success');
+
+                // Add to UI with R2 Badge
+                addStoredFileToList(selectedFile.name, 'CLOUDFLARE_SECURE');
+
+                // Record in MongoDB Atlas
+                await recordFileUploadInDatabase(selectedFile.name, data.key, 'CLOUDFLARE_SECURE');
+            } else {
+                throw new Error('R2 PUT request failed.');
+            }
+
         } catch (err) {
-            setStatus(`[DECRYPTION ERROR] ${err.message}`, 'error');
+            setStatus(`[R2 ERROR] ${err.message}`, 'error');
         } finally {
-            decryptBtn.disabled = false;
+            uploadR2Btn.disabled = false;
         }
     });
 }
